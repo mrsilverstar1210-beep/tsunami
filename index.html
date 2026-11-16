@@ -171,7 +171,7 @@
   body.t-botqoq { --h1:#060d09; --h2:#14271c; --ac:#7fb56a; --ac2:#b4d99a; --soft:#18271d; --bg:#0a110d; --card:#121c16; --tx:#e9f0e6; --hint:#8b9a8c; --line:#213026; --act:#08110b; --bad:#ff7b6b; --ok:#6fd08c; --m1:#4f8a3c; --m2:#1c6a55; --m3:#77701f; }
   select, textarea { width:100%; padding:12px 13px; border-radius:13px; border:1px solid var(--line); background:var(--card); color:var(--tx); font:inherit; outline:none; }
   textarea { min-height:70px; resize:vertical; }
-  body.auth .hdr, body.auth .drw, body.auth .tabs { display:none !important; } body.auth #view { padding:0; }
+  body.auth .hdr, body.auth .drw, body.auth .tabs { display:none !important; } body.auth #view { padding:0 !important; max-width:none !important; margin:0 !important; }
   .login { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px; position:relative; overflow:hidden; background:linear-gradient(150deg, var(--h1), var(--h2)); }
   .login .box { position:relative; z-index:1; width:100%; max-width:380px; background:color-mix(in srgb, var(--card) 86%, transparent); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px); border:1px solid var(--line); border-radius:26px; padding:26px 22px 22px; box-shadow:0 30px 80px -30px rgba(0,0,0,.7); }
   .login .logo { width:64px; height:64px; border-radius:20px; background:linear-gradient(135deg, var(--ac), var(--ac2)); color:var(--act); display:flex; align-items:center; justify-content:center; margin-bottom:14px; } .login .logo svg { width:34px; height:34px; }
@@ -622,15 +622,21 @@ function start() {
     setTheme(ls("tsu_theme") || window.__THEME || (INIT ? "oltin" : "botqoq"));
     var tok = ls("tsu_tok"); if (!INIT && !tok) return loginScreen();
     AUTH = INIT ? { init: INIT } : { tok: tok }; var tn = ls("tsu_ten"); if (tn) AUTH.ten = tn;
+    // oxirgi ma'lumot bilan darhol ochiladi, yangisi orqa fonda yuklanadi
+    try { var c = JSON.parse(ls("tsu_d") || "null"); if (c && c.k === dKey() && Date.now() - c.t < 432e5) { setD(c.d); tab("home"); setTimeout(moveInd, 50); call({ fn: "init" }).then(function (d) { setD(d); renderDrw(); }, function () {}); return; } } catch (e) {}
     boot();
   };
   if (GAS && google.script.url && !API_URL) google.script.url.getLocation(function (loc) { fin(String(loc.hash || "")); }); else fin(String(location.hash || "").replace(/^#/, ""));
 }
+function dKey() { return (AUTH.tok ? AUTH.tok.slice(0, 16) : "tg") + "|" + (AUTH.ten || ""); }
+function setD(d) {
+  D = d; if (d.pay.indexOf(PAY) < 0) PAY = d.pay[0]; document.body.classList.remove("auth");
+  document.querySelectorAll(".adm").forEach(function (b) { b.classList.toggle("hide", !can("dash")); }); $("tabs").classList.remove("hide");
+  if (AUTH.tok) ls("tsu_d", JSON.stringify({ k: dKey(), t: Date.now(), d: d }));
+}
 function boot(then) {
   call({ fn: "init" }).then(function (d) {
-    D = d; GC = {}; if (d.pay.indexOf(PAY) < 0) PAY = d.pay[0]; document.body.classList.remove("auth");
-    document.querySelectorAll(".adm").forEach(function (b) { b.classList.toggle("hide", !can("dash")); });
-    $("tabs").classList.remove("hide"); if (then) then(); else tab("home"); setTimeout(moveInd, 50);
+    GC = {}; setD(d); if (then) then(); else tab("home"); setTimeout(moveInd, 50);
   }, function (e) { if (AUTH.ten) { ls("tsu_ten", null); delete AUTH.ten; return boot(then); } D = null; fail(e); });
 }
 function reloadItems(then) { closeSheet(); loading(); boot(then); }
@@ -653,7 +659,7 @@ function loginScreen(msg) {
   $("lB2").onclick = ver; $("lC").oninput = function () { if (this.value.replace(/\D/g, "").length === 6) ver(); };
   $("lBk").onclick = function () { $("lg2").classList.add("hide"); $("lg1").classList.remove("hide"); };
 }
-function logout() { var a = AUTH; call({ fn: "logout" }).then(null, function () {}); ls("tsu_tok", null); ls("tsu_ten", null); AUTH = {}; GC = {}; CART = []; loginScreen(); void a; }
+function logout() { var a = AUTH; call({ fn: "logout" }).then(null, function () {}); ls("tsu_tok", null); ls("tsu_ten", null); ls("tsu_d", null); AUTH = {}; GC = {}; CART = []; loginScreen(); void a; }
 
 // ---------- YON MENYU ----------
 var TABS = { home: 1, sales: 1, dash: 1, goods: 1, more: 1 };
@@ -662,8 +668,8 @@ function menuAll() {
     ["Sotuv", [["users", "clients", "Mijozlar", "clients"], ["clip", "orders", "Buyurtmalar", "orders"], ["cal", "nasiya", "Nasiya va qarzlar", "nasiya"], ["undo", "retpick", "Sotuvni qaytarish", "ret"], ["calcheck", "dayend", "Kun yakuni"]]],
     ["Moliya", [["wallet", "kassa", "Kassa", "kassa"], ["fx", "valyuta", "Valyuta kursi"]]],
     ["Ta'minot va ombor", [["cart", "purchases", "Xaridlar", "purchase"], ["truck", "suppliers", "Yetkazib beruvchilar", "suppliers"], ["truckBack", "supret", "Yetkazib beruvchiga qaytarish", "supret"], ["clipcheck", "inventory", "Inventarizatsiya", "inventory"]]],
-    ["Boshqaruv", [["badge", "staff", "Xodimlar va lavozimlar", "staff"], ["gear", "settings", "Sozlamalar", "settings"], ["shop", "tenants", "Do'konlar (ota akkaunt)", "@sup"], ["user", "profile", "Profil"]]]
-  ].map(function (g) { return [g[0], g[1].filter(function (x) { return !x[3] || (x[3] === "@sup" ? D.sup : can(x[3])); })]; }).filter(function (g) { return g[1].length; });
+    ["Boshqaruv", [["badge", "staff", "Xodimlar va lavozimlar", "staff"], ["gear", "settings", "Sozlamalar", "settings"], ["grid", "@panel", "To'liq panel (barcha bo'limlar)", "@panel"], ["shop", "tenants", "Do'konlar (ota akkaunt)", "@sup"], ["user", "profile", "Profil"]]]
+  ].map(function (g) { return [g[0], g[1].filter(function (x) { return !x[3] || (x[3] === "@sup" ? D.sup : x[3] === "@panel" ? can("panel") && !!AUTH.tok && !(GAS && !API_URL) : can(x[3])); })]; }).filter(function (g) { return g[1].length; });
 }
 function renderDrw() {
   if (!D) return; var cur = STACK[0] ? STACK[0].name : "", i = 0;
@@ -672,7 +678,7 @@ function renderDrw() {
 }
 function openDrw() { if (!D) return; renderDrw(); $("drw").classList.add("open"); }
 function closeDrw() { $("drw").classList.remove("open"); }
-function root(v) { if (TABS[v] && (v !== "dash" || can("dash"))) return tab(v); STACK = [{ name: v, arg: {} }]; document.querySelectorAll(".tabs button").forEach(function (b) { b.classList.remove("on"); }); $("ind").style.width = "0px"; ANIM = "x"; show(); }
+function root(v) { if (v === "@panel") { location.href = "panel/"; return; } if (TABS[v] && (v !== "dash" || can("dash"))) return tab(v); STACK = [{ name: v, arg: {} }]; document.querySelectorAll(".tabs button").forEach(function (b) { b.classList.remove("on"); }); $("ind").style.width = "0px"; ANIM = "x"; show(); }
 $("drwLs").addEventListener("click", function (e) { var a = e.target.closest("[data-v]"); if (!a) return; var v = a.getAttribute("data-v"), wide = window.innerWidth >= 900; closeDrw(); setTimeout(function () { root(v); }, wide ? 0 : 180); });
 
 // ---------- ASOSIY ----------
@@ -742,11 +748,10 @@ function openCart() {
   var ph = $("cPhone") ? $("cPhone").value : "", nm = $("cName") ? $("cName").value : "";
   sheet('<h3>Savat</h3><div class="card" id="cLines">' + CART.map(function (c, i) { return '<div class="line"><div><b>' + esc(c.name) + '</b>' + (c.imeis.length ? '<div class="muted mono">' + c.imeis.join(", ") + '</div>' : "") + '<div class="muted">' + c.qty + " × " + money(c.price) + '</div></div><div class="row fit" style="flex:0 0 auto"><b>' + money(c.qty * c.price) + '</b><button class="x" data-i="' + i + '">×</button></div></div>'; }).join("") + '</div>'
     + '<div class="tot"><span>Jami</span><span>' + money(total()) + '</span></div>'
-    + '<div class="lbl">Mijoz telefoni (bo\'sh qoldirilsa — «' + esc(D.walkin) + '»)</div><input id="cPhone" inputmode="tel" placeholder="90 123 45 67" value="' + esc(ph) + '"><div class="muted" id="cClient"></div>'
-    + '<div id="cNameBox" class="hide"><div class="lbl">Yangi mijoz ismi</div><input id="cName" placeholder="Ism familiya" value="' + esc(nm) + '"></div>'
+    + '<div class="row"><div><div class="lbl">Mijoz telefoni</div><input id="cPhone" inputmode="tel" placeholder="90 123 45 67" value="' + esc(ph) + '"></div><div><div class="lbl">Ism familiyasi</div><input id="cName" placeholder="Ism familiya" autocomplete="off" value="' + esc(nm) + '"></div></div><div class="muted" id="cClient">Bo\'sh qoldirilsa — «' + esc(D.walkin) + '»</div>'
     + '<div class="lbl">To\'lov usuli</div>' + chipRow("cKind", [["full", "To'lov / qarz"], ["company", "Nasiya (kompaniya)"], ["own", "Bo'lib to'lash"]], PK.kind, "k") + '<div id="cBox"></div>'
     + '<div class="err" id="cErr"></div><button class="btn" id="cSave" onclick="saveSale()">Sotuvni tasdiqlash</button><div style="height:8px"></div><button class="btn sec" onclick="closeSheet()">Davom etish</button>');
-  if (CLIENT) $("cClient").innerHTML = '<b class="okc">✓ ' + esc(CLIENT.name) + "</b>"; else if (nm || d9().length === 9) { $("cNameBox").classList.remove("hide"); }
+  if (CLIENT) { $("cName").value = CLIENT.name; $("cClient").innerHTML = '<b class="okc">✓ bazadagi mijoz</b>'; } else if (d9().length === 9) $("cClient").textContent = "Yangi mijoz — ism familiyasini yozing.";
   $("cLines").onclick = function (e) { var b = e.target.closest("[data-i]"); if (!b) return; CART.splice(Number(b.getAttribute("data-i")), 1); cartBar(); saleRender(); if (!CART.length) return closeSheet(); openCart(); };
   chipPick("cKind", "k", function (v) { PK.kind = v; payBox(); });
   $("cPhone").addEventListener("input", lookClient); payBox();
@@ -775,9 +780,9 @@ function paidFull() { $("cPaid").value = rnd(total()); debt(); }
 function debt() { var p = num($("cPaid").value), d = total() - (p >= 0 ? p : 0); $("cDebt").innerHTML = d > 0.005 ? 'Qarzga: <b class="badc">' + money(d) + "</b> (mijoz telefoni shart)" : ""; $("cDueBox").classList.toggle("hide", !(d > 0.005)); }
 var lookT = null;
 function lookClient() {
-  clearTimeout(lookT); CLIENT = null; $("cClient").textContent = ""; $("cNameBox").classList.add("hide");
+  clearTimeout(lookT); if (CLIENT) $("cName").value = ""; CLIENT = null; $("cClient").textContent = "Bo'sh qoldirilsa — «" + D.walkin + "»";
   var d = d9(); if (d.length !== 9) return; $("cClient").textContent = "Qidirilmoqda…";
-  lookT = setTimeout(function () { get("clientBy", { phone: d }).then(function (c) { if (!$("cClient") || d9() !== d) return; CLIENT = c; if (c) $("cClient").innerHTML = '<b class="okc">✓ ' + esc(c.name) + "</b>"; else { $("cClient").textContent = "Bu raqam bazada yo'q — yangi mijoz qo'shiladi."; $("cNameBox").classList.remove("hide"); } }, function () { if ($("cClient")) $("cClient").textContent = ""; }); }, 400);
+  lookT = setTimeout(function () { get("clientBy", { phone: d }).then(function (c) { if (!$("cClient") || d9() !== d) return; CLIENT = c; if (c) { $("cName").value = c.name; $("cClient").innerHTML = '<b class="okc">✓ bazadagi mijoz</b>'; } else { $("cClient").textContent = "Yangi mijoz — ism familiyasini yozing."; if (!$("cName").value) $("cName").focus(); } }, function () { if ($("cClient")) $("cClient").textContent = ""; }); }, 400);
 }
 function saveSale() {
   if (busy) return; var d = d9(), raw = $("cPhone").value.replace(/\D/g, ""), t = total(), E = function (m) { $("cErr").textContent = m; }, pay = { kind: PK.kind, type: PAY };
@@ -791,7 +796,8 @@ function saveSale() {
     if (PK.kind === "company") { pay.co = PK.co; if (!pay.co) return E("Nasiya kompaniyasini tanlang."); }
     else { pay.months = PK.months; pay.pct = num($("cPct").value) || 0; pay.first = $("cFirst").value; if (d.length !== 9) return E("Bo'lib to'lash uchun mijoz telefonini kiriting."); if (!pay.first) return E("Birinchi to'lov sanasini tanlang."); }
   }
-  if (d.length === 9 && !CLIENT && $("cName").value.trim().length < 2) return E("Yangi mijozning ismini kiriting.");
+  if (d.length === 9 && !CLIENT && $("cName").value.trim().length < 2) return E("Mijozning ism familiyasini kiriting.");
+  if (d.length !== 9 && $("cName").value.trim()) return E("Ism yozilgan — mijoz telefonini ham kiriting.");
   busy = true; $("cSave").disabled = true; $("cSave").textContent = "Saqlanmoqda…"; E("");
   act("sale", { items: CART, phone: d, clientName: $("cName").value.trim(), pay: pay }).then(function (r) {
     busy = false; if (!r || !r.ok) { $("cSave").disabled = false; $("cSave").textContent = "Sotuvni tasdiqlash"; return E((r && r.msg) || "Saqlab bo'lmadi."); }
@@ -998,7 +1004,7 @@ VIEWS.invNew = { t: "Yangi inventarizatsiya", f: function () {
 } };
 
 // ---------- XODIMLAR VA LAVOZIMLAR ----------
-var PLBL = { sale: "Sotuv qilish", sales_all: "Hamma sotuvlarni ko'rish", ret: "Sotuvni qaytarish", dash: "Dashbord", cost: "Tannarx va foydani ko'rish", goods_edit: "Tovar va narxlarni o'zgartirish", clients: "Mijozlar", client_pay: "Mijozdan to'lov qabul qilish", orders: "Buyurtmalar", nasiya: "Nasiya va qarzlar", kassa: "Kassani ko'rish", cash: "Kirim / chiqim / o'tkazma", purchase: "Xaridlar (omborga kirim)", suppliers: "Yetkazib beruvchilar", sup_pay: "Yetkazib beruvchiga to'lov", supret: "Yetkazib beruvchiga qaytarish", inventory: "Inventarizatsiya", staff: "Xodimlar va lavozimlar", settings: "Sozlamalar" };
+var PLBL = { sale: "Sotuv qilish", sales_all: "Hamma sotuvlarni ko'rish", ret: "Sotuvni qaytarish", dash: "Dashbord", cost: "Tannarx va foydani ko'rish", goods_edit: "Tovar va narxlarni o'zgartirish", clients: "Mijozlar", client_pay: "Mijozdan to'lov qabul qilish", orders: "Buyurtmalar", nasiya: "Nasiya va qarzlar", kassa: "Kassani ko'rish", cash: "Kirim / chiqim / o'tkazma", purchase: "Xaridlar (omborga kirim)", suppliers: "Yetkazib beruvchilar", sup_pay: "Yetkazib beruvchiga to'lov", supret: "Yetkazib beruvchiga qaytarish", inventory: "Inventarizatsiya", staff: "Xodimlar va lavozimlar", settings: "Sozlamalar", panel: "To'liq boshqaruv paneli (sayt)" };
 VIEWS.staff = { t: "Xodimlar va lavozimlar", f: function () {
   loading(); get("staff").then(function (r) {
     VIEWS.staff.data = r;
