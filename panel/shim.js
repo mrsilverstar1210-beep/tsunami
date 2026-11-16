@@ -55,11 +55,22 @@
     if (kind === "db") return Promise.resolve(db);
     return Promise.resolve(null);
   } };
-  // ko'rinish: Tsunami yashil uslubi + ilovaga qaytish tugmasi
+  // modullar o'zi qo'shadigan uslublardagi ranglar ham tanlangan ko'rinishga moslanadi
+  var BGM = {"#fff": "--card", "#ffffff": "--card", "#f5f6f8": "--bg", "#f3f4f6": "--soft", "#f9fafb": "--soft", "#fafafa": "--soft", "#f8fafc": "--soft", "#e5e7eb": "--line", "#d1d5db": "--line2", "#111827": "--nav", "#1f2937": "--navsoft", "#374151": "--navsoft", "#2563eb": "--accent", "#1e40af": "--accent", "#dbeafe": "--accsoft", "#dcfce7": "--oksoft", "#f0fdf4": "--oksoft", "#fef3c7": "--warnsoft", "#fffbeb": "--warnsoft", "#fee2e2": "--badsoft", "#fef2f2": "--badsoft", "#16a34a": "--ok", "#dc2626": "--bad", "#f59e0b": "--warn", "#9ca3af": "--muted", "#6b7280": "--muted", "#f1f5f9": "--soft", "#eef2ff": "--accsoft", "#3b82f6": "--accent", "#1d4ed8": "--accent", "#0f172a": "--ink", "#86efac": "--ok", "#fde68a": "--warn"}, FGM = {"#fff": "--onacc", "#ffffff": "--onacc", "#e5e7eb": "--navink", "#d1d5db": "--navink", "#9ca3af": "--muted", "#6b7280": "--muted", "#64748b": "--muted", "#94a3b8": "--muted", "#475569": "--muted", "#111827": "--ink", "#1f2937": "--ink", "#374151": "--ink", "#1d2129": "--ink", "#111": "--ink", "#0f172a": "--ink", "#2563eb": "--accent", "#1e40af": "--accink", "#166534": "--okink", "#15803d": "--okink", "#16a34a": "--okink", "#92400e": "--warnink", "#b45309": "--warnink", "#991b1b": "--badink", "#b91c1c": "--badink", "#dc2626": "--badink", "#f59e0b": "--warnink"};
+  function remap(css) { return css.replace(/([a-zA-Z-]+)\s*:\s*([^;{}]+)/g, function (m, prop, val) { if (val.indexOf("#") < 0 || prop.indexOf("--") === 0) return m; var M = /^(color|fill|stroke)$/i.test(prop) ? FGM : BGM; return prop + ":" + val.replace(/#[0-9a-fA-F]{3,6}\b/g, function (h) { var v = M[h.toLowerCase()]; return v ? "var(" + v + ")" : h; }); }); }
+  function fixStyles() { var st = document.querySelectorAll("style:not([data-tsu])"); for (var i = 0; i < st.length; i++) { var s = st[i]; s.setAttribute("data-tsu", "1"); var t = s.textContent, r = remap(t).replace(/:root\s*\{[^}]*\}/g, ""); if (r !== t) s.textContent = r; } }
+  function fixInline(root) { var el = root.querySelectorAll ? root.querySelectorAll('[style*="#"]') : []; for (var i = 0; i < el.length; i++) { var a = el[i].getAttribute("style"), r = remap(a); if (r !== a) el[i].setAttribute("style", r); } }
+  new MutationObserver(function (ms) { var st = false; for (var i = 0; i < ms.length; i++) for (var j = 0; j < ms[i].addedNodes.length; j++) { var n = ms[i].addedNodes[j]; if (n.nodeType !== 1) continue; if (n.tagName === "STYLE") st = true; else { if (n.getAttribute && (n.getAttribute("style") || "").indexOf("#") >= 0) { var a = n.getAttribute("style"), r = remap(a); if (r !== a) n.setAttribute("style", r); } fixInline(n); } } if (st) fixStyles(); }).observe(document.documentElement, { childList: true, subtree: true });
+  document.addEventListener("DOMContentLoaded", function () { fixStyles(); fixInline(document); });
+  // ko'rinish: 6 ta rang varianti (tanlov brauzerda saqlanadi)
+  var TH = [["botqoq", "#7fb56a"], ["oltin", "#d6a84e"], ["yashil", "#2f7d4f"], ["grafit", "#5b9dff"], ["oq", "#e4e4e8"], ["okean", "#2fc4b2"]];
+  function setTh(t) { document.documentElement.setAttribute("data-th", t); try { localStorage.setItem("tsu_pth", t); } catch (e) {} var b = document.querySelectorAll("#tsuTh button"); for (var i = 0; i < b.length; i++) b[i].className = b[i].getAttribute("data-t") === t ? "on" : ""; }
+  setTh(ls("tsu_pth") || window.__TSU_TH || "botqoq");
   document.addEventListener("DOMContentLoaded", function () {
-    var st = document.createElement("style");
-    st.textContent = ":root{--accent:#2f7d4f !important}nav{background:#07140d !important}#tsuBack{display:block;margin:10px 14px 4px;padding:9px 12px;border-radius:10px;background:#12301f;color:#b4d99a;text-decoration:none;font-weight:600;font-size:13.5px}#tsuBack:hover{background:#18402a}";
-    document.head.appendChild(st); document.title = "Tsunami — boshqaruv paneli";
-    var nav = document.querySelector("nav"); if (nav) { var a = document.createElement("a"); a.id = "tsuBack"; a.href = "../"; a.textContent = "← Tsunami ilovasiga qaytish"; nav.insertBefore(a, nav.firstChild); }
+    document.title = "Tsunami — boshqaruv paneli";
+    var nav = document.querySelector("nav"); if (!nav) return;
+    var a = document.createElement("a"); a.id = "tsuBack"; a.href = "../"; a.textContent = "← Tsunami ilovasiga qaytish"; nav.insertBefore(a, nav.firstChild);
+    var d = document.createElement("div"); d.id = "tsuTh"; d.innerHTML = TH.map(function (x) { return '<button data-t="' + x[0] + '" title="' + x[0] + '" style="background:' + x[1] + '"></button>'; }).join(""); nav.appendChild(d);
+    d.onclick = function (e) { var t = e.target.getAttribute("data-t"); if (t) setTh(t); }; setTh(document.documentElement.getAttribute("data-th"));
   });
 })();

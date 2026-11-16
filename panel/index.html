@@ -214,6 +214,7 @@
   @media (max-width:700px) { .tform .row { grid-template-columns:1fr; } }
   @media (max-width:700px) { body { flex-direction:column; } nav { width:100%; display:flex; overflow-x:auto; padding:8px 0; } nav h1 { display:none; } nav a { white-space:nowrap; } }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 <nav>
@@ -446,7 +447,7 @@ function renderSub(i) {
   currentSub = i;
   const s = current, sub = s.subs[i];
   [...subs.children].forEach((b, j) => b.classList.toggle("on", j === i));
-  $("subtitle").innerHTML = sub.n + '<span class="badge">demo</span>';
+  $("subtitle").innerHTML = sub.n + '';
   $("cols").innerHTML = sub.cols.map(c => `<th>${c}</th>`).join("");
   $("rows").innerHTML = sub.rows
     ? sub.rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")
@@ -490,7 +491,7 @@ function render(id) {
   view = s.id;
   document.body.classList.toggle("tasks-on", s.id === "vazifalar");
   document.body.classList.toggle("sales-on", s.id === "hisobotlar");
-  $("title").innerHTML = s.name + '<span class="badge">demo</span>';
+  $("title").innerHTML = s.name + '';
   $("desc").textContent = s.desc;
   kpis.innerHTML = s.kpis.map(k => `<div class="kpi"><div class="label">${k}</div><div class="value">—</div></div>`).join("");
   subs.innerHTML = "";
