@@ -1,0 +1,2198 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<script src="shim.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tsunami Boshqaruv Paneli (skelet)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  #qaytApp { display:none; } .qaytApp-on #qaytApp { display:block; }
+  .qaytApp-on .gen, .qaytApp-on #kpis { display:none; }
+  tr.qtdone td { color:#9ca3af; }
+  #qtSaleQ { max-width:260px; } #qtSale { flex:1; min-width:0; }
+  #payApp, #bolApp { display:none; } .payApp-on #payApp, .bolApp-on #bolApp { display:block; }
+  .payApp-on .gen, .payApp-on #kpis, .bolApp-on .gen, .bolApp-on #kpis { display:none; }
+  .st-late { background:#fee2e2; color:#b91c1c; } .bltab { width:auto; } .bltab td, .bltab th { padding:4px 12px; }
+</style>
+<style>
+  :root { --bg:#f5f6f8; --card:#fff; --ink:#1d2129; --muted:#6b7280; --line:#e5e7eb; --accent:#2563eb; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background:var(--bg); color:var(--ink); display:flex; min-height:100vh; }
+  nav { width:230px; background:#111827; color:#e5e7eb; padding:16px 0; flex-shrink:0; overflow-y:auto; }
+  nav h1 { font-size:16px; margin:0 16px 12px; color:#fff; }
+  nav a { display:block; padding:9px 16px; color:#d1d5db; text-decoration:none; font-size:14px; }
+  nav a:hover { background:#1f2937; }
+  nav a.active { background:var(--accent); color:#fff; }
+  main { flex:1; padding:24px; min-width:0; }
+  h2 { margin:0 0 4px; font-size:22px; }
+  .desc { color:var(--muted); font-size:14px; margin-bottom:16px; }
+  .subs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+  .subs button { border:1px solid var(--line); background:var(--card); padding:6px 12px; border-radius:99px; cursor:pointer; font-size:13px; color:var(--ink); }
+  .subs button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:12px; margin-bottom:20px; }
+  .kpi { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; }
+  .kpi .label { font-size:12px; color:var(--muted); }
+  .kpi .value { font-size:22px; font-weight:600; margin-top:4px; }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; margin-bottom:16px; }
+  .panel h3 { margin:0 0 8px; font-size:15px; }
+  .todo { font-size:14px; color:var(--muted); line-height:1.6; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid var(--line); }
+  th { color:var(--muted); font-weight:500; font-size:12px; }
+  td.empty { color:#9ca3af; }
+  .badge { display:inline-block; font-size:11px; background:#fef3c7; color:#92400e; padding:2px 8px; border-radius:99px; margin-left:8px; vertical-align:middle; }
+  .salesbar { display:none; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:12px; }
+  .sales-on .salesbar { display:flex; }
+  .seg { display:flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:#fff; }
+  .seg button { font:inherit; font-size:13px; border:0; background:#fff; padding:6px 10px; cursor:pointer; color:var(--ink); border-right:1px solid var(--line); }
+  .seg button:last-child { border-right:0; }
+  .seg button.on { background:var(--ink); color:#fff; }
+  .fresh { font-size:12px; color:var(--muted); }
+  .fresh button { font:inherit; font-size:12px; padding:4px 10px; border-radius:6px; border:0; background:var(--accent); color:#fff; cursor:pointer; margin-left:6px; }
+  .kpi .value small { font-size:13px; color:var(--muted); font-weight:500; }
+  .badge.live { background:#dcfce7; color:#166534; }
+  td.num { text-align:right; white-space:nowrap; }
+  .pct { padding:2px 8px; border-radius:99px; font-size:12px; font-weight:600; }
+  .pct.ok { background:#dcfce7; color:#166534; } .pct.mid { background:#fef3c7; color:#92400e; } .pct.low { background:#fee2e2; color:#991b1b; }
+  .panel { overflow-x:auto; }
+  .tasks-on .gen, .tasks-on #subs, .tasks-on #kpis { display:none; }
+  #taskApp, #mobile { display:none; }
+  .tasks-on #taskApp { display:block; }
+  body.mob { display:block; }
+  body.mob nav, body.mob main { display:none; }
+  body.mob #mobile { display:block; max-width:520px; margin:0 auto; min-height:100vh; }
+  .tform { display:flex; flex-direction:column; gap:8px; }
+  .tform input, .tform textarea, .tform select, .mlabel input { font:inherit; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; width:100%; box-sizing:border-box; }
+  .tform textarea { min-height:60px; resize:vertical; }
+  .tform .row { display:grid; grid-template-columns:2fr 1fr 1fr; gap:8px; }
+  .tform button, .tact button, .filters button { font:inherit; cursor:pointer; border-radius:8px; }
+  .tform button { background:var(--accent); color:#fff; border:0; padding:10px; font-weight:600; }
+  .tform button:disabled, .tact button:disabled { opacity:.5; }
+  .hint { font-size:13px; color:var(--muted); margin-top:10px; line-height:1.5; }
+  .thead { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+  .thead h3 { margin:0; }
+  .filters { display:flex; gap:6px; flex-wrap:wrap; }
+  .filters button { border:1px solid var(--line); background:#fff; padding:4px 10px; font-size:12px; color:var(--ink); }
+  .filters button.on { background:var(--ink); color:#fff; border-color:var(--ink); }
+  .status { font-size:13px; color:var(--muted); margin:6px 0; min-height:1px; }
+  .tcard { border:1px solid var(--line); border-left:4px solid #9ca3af; border-radius:8px; padding:10px 12px; margin-bottom:8px; background:#fff; }
+  .tcard.pr-muhim { border-left-color:#f59e0b; }
+  .tcard.pr-shoshilinch { border-left-color:#dc2626; }
+  .ttop { display:flex; justify-content:space-between; gap:8px; align-items:flex-start; }
+  .st { font-size:11px; padding:2px 8px; border-radius:99px; white-space:nowrap; }
+  .st-yangi { background:#dbeafe; color:#1e40af; }
+  .st-jarayonda { background:#fef3c7; color:#92400e; }
+  .st-bajarildi { background:#dcfce7; color:#166534; }
+  .tdesc { font-size:14px; margin-top:6px; white-space:pre-wrap; }
+  .tmeta { font-size:12px; color:var(--muted); margin-top:6px; }
+  .late { color:#dc2626; font-weight:600; }
+  .tact { display:flex; gap:8px; margin-top:10px; }
+  .tact button { border:1px solid var(--line); background:#fff; padding:6px 12px; font-size:13px; color:var(--ink); }
+  .tact button.go { background:var(--accent); color:#fff; border-color:var(--accent); flex:1; padding:12px; font-size:15px; }
+  .tact button.done { background:#16a34a; color:#fff; border-color:#16a34a; flex:1; padding:12px; font-size:15px; }
+  .mhead { background:#111827; color:#fff; padding:16px; font-size:17px; }
+  .mbody { padding:14px; }
+  .mlabel { display:block; font-size:13px; color:var(--muted); margin-bottom:10px; }
+  .mlabel input { margin-top:4px; font-size:16px; }
+  .mback { display:block; text-align:center; font-size:13px; color:var(--muted); margin:20px 0; }
+  .empty-box { text-align:center; color:#9ca3af; padding:24px 0; font-size:14px; }
+  #kirimApp { display:none; }
+  .kirim-on #kirimApp { display:block; }
+  .kirim-on .gen, .kirim-on #kpis { display:none; }
+  .kgrid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:10px; }
+  .kform label { display:flex; flex-direction:column; gap:4px; font-size:12px; color:var(--muted); }
+  .kform label.full { margin-top:10px; }
+  .kform input, .kform select, .kform textarea { font:inherit; font-size:14px; color:var(--ink); padding:8px 9px; border:1px solid var(--line); border-radius:8px; background:#fff; width:100%; box-sizing:border-box; }
+  .kform textarea { resize:vertical; min-height:38px; font-family:ui-monospace, Menlo, monospace; font-size:12px; }
+  .ktable { overflow-x:auto; margin-top:14px; }
+  .ktable td { padding:4px; vertical-align:top; border-bottom:0; }
+  .ktable td:first-child { padding-top:12px; color:var(--muted); }
+  .ktable td:nth-child(2) { min-width:240px; } .ktable td:nth-child(5) { min-width:180px; } .ktable td[data-sum] { padding-top:12px; }
+  .ktable input.sm { width:96px; }
+  .ktable button[data-rm] { border:0; background:none; font-size:20px; line-height:1; color:#9ca3af; cursor:pointer; padding:8px 4px; }
+  .lnk { border:0; background:none; color:var(--accent); font:inherit; font-size:13px; cursor:pointer; padding:6px 0; }
+  .ktotal { text-align:right; font-weight:600; margin:8px 0 12px; }
+  .kbtns { display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+  .kbtns button { font:inherit; font-weight:600; padding:10px 16px; border-radius:8px; cursor:pointer; }
+  .kbtns .sec { background:#fff; border:1px solid var(--line); color:var(--ink); }
+  .kbtns .pri { background:#16a34a; border:1px solid #16a34a; color:#fff; }
+  .kbtns button:disabled { opacity:.5; }
+  .status.err { color:#dc2626; }
+  .st-draft { background:#f3f4f6; color:#374151; } .st-done { background:#dcfce7; color:#166534; }
+  .krAct { white-space:nowrap; }
+  .krAct button { font:inherit; font-size:12px; padding:4px 8px; border:1px solid var(--line); background:#fff; border-radius:6px; cursor:pointer; margin:2px; color:var(--ink); }
+  .krDet td { background:#f9fafb; font-size:13px; line-height:1.6; }
+  .imeis { font-family:ui-monospace, Menlo, monospace; font-size:12px; color:var(--muted); }
+  #krList td:nth-child(2) { white-space:nowrap; }
+  #tovarApp { display:none; }
+  .tovar-on #tovarApp { display:block; }
+  .tovar-on .gen, .tovar-on #kpis { display:none; }
+  .tvwrap { display:flex; gap:18px; flex-wrap:wrap; }
+  .tvphoto { width:170px; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .imgbox { width:160px; height:160px; border:1px dashed var(--line); border-radius:10px; display:flex; align-items:center; justify-content:center; color:#9ca3af; font-size:13px; background:#fafafa; overflow:hidden; }
+  .imgbox img { width:100%; height:100%; object-fit:contain; background:#fff; }
+  .upl { font-size:13px; color:var(--accent); cursor:pointer; font-weight:600; }
+  .tvfields { flex:1; min-width:280px; }
+  .kgrid .span2 { grid-column:span 2; }
+  .inrow { display:flex; gap:6px; }
+  .inrow input { flex:1; min-width:0; }
+  .mini { font:inherit; font-size:12px; padding:0 10px; border:1px solid var(--line); background:#fff; border-radius:8px; cursor:pointer; color:var(--ink); white-space:nowrap; }
+  .tvrow { display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-top:14px; }
+  .tvrow .lbl { font-size:13px; color:var(--ink); min-width:250px; }
+  .switch { position:relative; width:44px; height:24px; flex:none; display:inline-block; }
+  .switch input { opacity:0; width:0; height:0; position:absolute; }
+  .switch span { position:absolute; inset:0; background:#d1d5db; border-radius:99px; cursor:pointer; transition:.2s; }
+  .switch span::before { content:""; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; box-shadow:0 1px 2px rgba(0,0,0,.2); }
+  .switch input:checked + span { background:#16a34a; }
+  .switch input:checked + span::before { transform:translateX(20px); }
+  .switch input:focus-visible + span { outline:2px solid var(--accent); outline-offset:2px; }
+  .chips { display:flex; gap:8px; flex-wrap:wrap; }
+  .chip { display:flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:99px; padding:5px 12px; font-size:13px; cursor:pointer; background:#fff; color:var(--ink); }
+  .chip input { margin:0; accent-color:#16a34a; }
+  input.search { font:inherit; font-size:13px; padding:7px 10px; border:1px solid var(--line); border-radius:8px; min-width:260px; }
+  td.thumb { width:52px; } td.thumb img { width:44px; height:44px; object-fit:contain; border-radius:6px; border:1px solid var(--line); background:#fff; display:block; }
+  .noimg { display:block; width:44px; height:44px; border-radius:6px; background:#f3f4f6; }
+  td.mono { font-family:ui-monospace, Menlo, monospace; font-size:12px; white-space:nowrap; }
+  td.small { font-size:12px; color:var(--muted); }
+  @media (max-width:700px) { .kgrid .span2 { grid-column:auto; } .tvrow .lbl { min-width:0; } input.search { min-width:0; width:100%; } }
+  .kform .chip { flex-direction:row; font-size:13px; color:var(--ink); gap:6px; }
+  .kform .switch { display:inline-block; }
+  .kform .upl { color:var(--accent); font-size:13px; font-weight:600; }
+  .kform .chip input { width:auto; padding:0; }
+  #katApp { display:none; }
+  .kat-on #katApp { display:block; }
+  .kat-on .gen, .kat-on #kpis { display:none; }
+  .ktform { display:flex; gap:10px; align-items:flex-end; flex-wrap:wrap; }
+  .ktform label { flex:1; min-width:220px; }
+  .ktname { display:inline-flex; align-items:center; gap:6px; }
+  .ktbranch { color:#9ca3af; margin-right:2px; }
+  .kform select option { font-family:inherit; }
+  .fpanel { display:none; }
+  .fopen .fpanel { display:block; }
+  .openbtn { font:inherit; font-size:13px; font-weight:600; padding:7px 14px; border-radius:8px; border:0; background:#16a34a; color:#fff; cursor:pointer; white-space:nowrap; }
+  .fopen .openbtn { display:none; }
+  .closebtn { font:inherit; font-size:13px; border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:8px; padding:5px 12px; cursor:pointer; margin-left:auto; }
+  .thead .hbtns { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  nav { transition:width .2s ease; overflow-x:hidden; }
+  .navhead { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 8px 12px 16px; }
+  .navhead h1 { margin:0 !important; white-space:nowrap; overflow:hidden; }
+  #navToggle { background:none; border:0; color:#9ca3af; cursor:pointer; padding:6px; border-radius:6px; display:flex; flex:none; }
+  #navToggle:hover { background:#1f2937; color:#fff; }
+  #navToggle svg { width:18px; height:18px; transition:transform .2s; }
+  nav a { display:flex; align-items:center; gap:12px; white-space:nowrap; }
+  nav a svg { width:20px; height:20px; flex:none; }
+  body.navmin nav { width:64px; }
+  body.navmin .navhead { padding:0 0 12px; justify-content:center; }
+  body.navmin .navhead h1, body.navmin nav a span { display:none; }
+  body.navmin nav a { justify-content:center; padding:10px 0; }
+  body.navmin #navToggle svg { transform:rotate(180deg); }
+  @media (max-width:700px) { .navhead { display:none; } body.navmin nav { width:100%; } body.navmin nav a span { display:inline; } body.navmin nav a { padding:9px 16px; } nav a svg { width:18px; height:18px; } }
+  .ptApp { display:none; }
+  .supApp-on #supApp, .cliApp-on #cliApp { display:block; }
+  .supApp-on .gen, .supApp-on #kpis, .cliApp-on .gen, .cliApp-on #kpis { display:none; }
+  .kform [hidden] { display:none !important; }
+  .pt-seg { display:flex; gap:8px; flex-wrap:wrap; }
+  .pt-seg .chip input { accent-color:var(--accent); }
+  .balpos { color:#b91c1c; font-weight:600; } .balneg { color:#15803d; font-weight:600; } .bal0 { color:#9ca3af; }
+  #sotuvApp { display:none; } .sotuvApp-on #sotuvApp { display:block; }
+  .sotuvApp-on .gen, .sotuvApp-on #kpis, .sotuvApp-on .salesbar { display:none; }
+  .slpay { margin-top:6px; } .sldebt { align-self:end; padding-bottom:10px; font-size:14px; }
+  tr.slx td:not(.krAct) { color:#9ca3af; text-decoration:line-through; }
+  #yorliqApp { display:none; } .yorliqApp-on #yorliqApp { display:block; }
+  .yorliqApp-on .gen, .yorliqApp-on #kpis, .yorliqApp-on .salesbar { display:none; }
+  .ylsrc { max-height:320px; overflow:auto; }
+  .ylprev { display:flex; flex-wrap:wrap; gap:12px; margin-top:14px; }
+  .ylcard { width:290px; height:200px; border:1px solid var(--line); border-radius:4px; box-shadow:0 1px 3px rgba(0,0,0,.08); background:#fff; }
+  .ylrate { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--muted); }
+  .ylrate input { width:110px; font:inherit; font-size:13px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; }
+  .yltab input, .yltab select { font:inherit; font-size:13px; padding:6px 8px; border:1px solid var(--line); border-radius:8px; background:#fff; width:100%; box-sizing:border-box; }
+  .yltab input.xs { width:70px; } .yltab input.sm { width:110px; } .yltab td:first-child { min-width:220px; }
+  .yltab button[data-rm] { border:0; background:none; font-size:20px; color:#9ca3af; cursor:pointer; }
+  .yltab input:disabled { background:#f3f4f6; }
+  @media (max-width:700px) { .tform .row { grid-template-columns:1fr; } }
+  @media (max-width:700px) { body { flex-direction:column; } nav { width:100%; display:flex; overflow-x:auto; padding:8px 0; } nav h1 { display:none; } nav a { white-space:nowrap; } }
+</style>
+</head>
+<body>
+<nav>
+  <div class="navhead"><h1>Tsunami Boshqaruv</h1><button type="button" id="navToggle" title="Panelni kichraytirish / kattalashtirish" aria-label="Panelni kichraytirish yoki kattalashtirish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button></div>
+  <div id="menu"></div>
+</nav>
+<main>
+  <h2 id="title"></h2>
+  <div class="desc" id="desc"></div>
+  <div class="salesbar" id="salesBar"></div>
+  <div class="subs" id="subs"></div>
+  <div class="grid" id="kpis"></div>
+  <div class="panel gen">
+    <h3 id="subtitle"></h3>
+    <table>
+      <thead><tr id="cols"></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <div class="panel gen">
+    <h3>Holat</h3>
+    <div class="todo">Ma'lumot ulanmagan. Bito API yoki Google Sheets ulangach, bu yerda haqiqiy raqamlar chiqadi.</div>
+  </div>
+  <div id="taskApp">
+    <div class="panel">
+      <h3>Yangi vazifa berish</h3>
+      <form id="tForm" class="tform">
+        <input id="tTitle" placeholder="Vazifa nomi" required maxlength="120">
+        <textarea id="tDesc" placeholder="Izoh (ixtiyoriy)" maxlength="1000"></textarea>
+        <div class="row">
+          <input id="tWorker" placeholder="Ishchi ismi" list="workers" required maxlength="60">
+          <input id="tDue" type="date" title="Muddat">
+          <select id="tPr"><option value="oddiy">Oddiy</option><option value="muhim">Muhim</option><option value="shoshilinch">Shoshilinch</option></select>
+        </div>
+        <button type="submit" id="tSend">Ishchiga yuborish</button>
+      </form>
+      <div class="hint">Ishchilar vazifalarini telefondagi mobil versiyada ko'radi: <a href="#mobil">mobil versiyani ochish</a>. Ishchiga shu sahifa havolasini oxiriga <b>#mobil</b> qo'shib yuboring.</div>
+    </div>
+    <div class="panel">
+      <div class="thead"><h3>Berilgan vazifalar</h3><div class="filters" id="tFilters"></div></div>
+      <div class="status" id="tStatus"></div>
+      <div id="tList"></div>
+    </div>
+  </div>
+  <div id="katApp">
+    <div class="panel fpanel">
+      <div class="thead"><h3 id="ktFormTitle">Yangi kategoriya</h3><button type="button" id="ktCancel" class="lnk" hidden>Bekor qilish</button><button type="button" class="closebtn" data-close="katApp">Yopish ✕</button></div>
+      <form id="ktForm" class="kform ktform">
+        <label>Kategoriya nomi<input id="ktName" required maxlength="80" placeholder="Masalan: Smartfonlar"></label>
+        <label>Qaysi kategoriya ichida<select id="ktParent"></select></label>
+        <div class="kbtns"><button type="button" class="pri" id="ktSave">Saqlash</button></div>
+      </form>
+      <div class="status" id="ktFormMsg"></div>
+      <div class="tmeta">Kategoriyalarni bir-birining ichiga joylash mumkin, masalan: Smartfonlar / Apple / iPhone 15. Tovar yaratishda shu ro'yxatdan tanlanadi.</div>
+    </div>
+    <div class="panel">
+      <div class="thead"><h3>Kategoriyalar daraxti</h3><button type="button" class="openbtn" data-open="katApp">+ Yangi kategoriya</button></div>
+      <div class="status" id="ktStatus"></div>
+      <div id="ktList"></div>
+    </div>
+  </div>
+  <div id="tovarApp">
+    <div class="panel fpanel">
+      <div class="thead"><h3 id="tvFormTitle">Yangi tovar</h3><button type="button" id="tvCancel" class="lnk" hidden>Tahrirni bekor qilish</button><button type="button" class="closebtn" data-close="tovarApp">Yopish ✕</button></div>
+      <form id="tvForm" class="kform">
+        <div class="tvwrap">
+          <div class="tvphoto">
+            <div id="tvImgBox" class="imgbox">Rasm yo'q</div>
+            <label class="upl">Rasm yuklash<input type="file" id="tvFile" accept="image/*" hidden></label>
+            <button type="button" id="tvImgDel" class="lnk" hidden>Rasmni olib tashlash</button>
+            <div class="tmeta">ixtiyoriy</div>
+          </div>
+          <div class="tvfields">
+            <div class="kgrid">
+              <label class="span2">Tovar nomi<input id="tvName" required maxlength="160" placeholder="Masalan: iPhone 15 128GB Black"></label>
+              <label>Kategoriya<select id="tvCat"></select></label>
+              <label>Shtrix-kod<span class="inrow"><input id="tvBarcode" maxlength="40" inputmode="numeric" placeholder="Skaner yoki qo'lda"><button type="button" id="tvGen" class="mini" title="Ichki EAN-13 shtrix-kod yaratish">Yaratish</button></span></label>
+              <label>Artikul (SKU)<input id="tvSku" maxlength="60" placeholder="ixtiyoriy"></label>
+            </div>
+            <div class="tvrow"><span class="lbl">Markirovka (IMEI / seriya raqami bilan hisob)</span><label class="switch"><input type="checkbox" id="tvMark"><span></span></label><span id="tvMarkTxt" class="tmeta">O'chirilgan</span></div>
+            <div class="tvrow"><span class="lbl">Qaysi tashkilotlarda ruxsat berilgan</span><div id="tvOrgs" class="chips"></div></div>
+          </div>
+        </div>
+        <div class="kbtns"><button type="button" class="pri" id="tvSave">Saqlash</button></div>
+        <div class="status" id="tvFormMsg"></div>
+      </form>
+    </div>
+    <div class="panel">
+      <div class="thead"><h3>Tovarlar ro'yxati</h3><div class="hbtns"><input id="tvSearch" class="search" placeholder="Qidirish: nomi, kategoriya, shtrix-kod, artikul"><button type="button" class="openbtn" data-open="tovarApp">+ Yangi tovar</button></div></div>
+      <div class="status" id="tvStatus"></div>
+      <div id="tvList"></div>
+    </div>
+  </div>
+  <div id="kirimApp">
+    <div class="panel fpanel">
+      <div class="thead"><h3 id="krFormTitle">Yangi tovar kirimi</h3><button type="button" id="krCancel" class="lnk" hidden>Tahrirni bekor qilish</button><button type="button" class="closebtn" data-close="kirimApp">Yopish ✕</button></div>
+      <form id="krForm" class="kform">
+        <div class="kgrid">
+          <label>Kelgan sana<input type="date" id="krDate" required></label>
+          <label>Kimdan keldi (yetkazib beruvchi)<input id="krSupplier" list="krSuppliers" placeholder="Yetkazib beruvchi" required maxlength="120"></label>
+          <label>Tashkilot<select id="krOrg" required></select></label>
+          <label>Ombor<select id="krWh" required></select></label>
+          <label>Valyuta<select id="krCur"><option value="USD">USD ($)</option><option value="UZS">UZS (so'm)</option></select></label>
+          <label>Kurs (1 $ = so'm)<input type="number" id="krRate" min="0" step="1" placeholder="ixtiyoriy"></label>
+        </div>
+        <label class="full">Izoh<input id="krNote" maxlength="300" placeholder="ixtiyoriy"></label>
+        <div class="ktable"><table><thead><tr><th>#</th><th>Tovar</th><th>Soni</th><th>Narx (1 dona)</th><th>IMEI (har biri yangi qatorda)</th><th>Summa</th><th></th></tr></thead><tbody id="krRows"></tbody></table></div>
+        <button type="button" id="krAdd" class="lnk">+ Qator qo'shish</button>
+        <div class="ktotal" id="krTotal"></div>
+        <div class="kbtns"><button type="button" class="sec" data-save="draft">Chernovik sifatida saqlash</button><button type="button" class="pri" data-save="done">To'g'ridan-to'g'ri omborga qabul qilish</button></div>
+        <div class="status" id="krFormMsg"></div>
+      </form>
+    </div>
+    <div class="panel">
+      <div class="thead"><h3>Kirimlar</h3><div class="hbtns"><div class="filters" id="krFilters"></div><button type="button" class="openbtn" data-open="kirimApp">+ Yangi kirim</button></div></div>
+      <div class="status" id="krStatus"></div>
+      <div id="krList"></div>
+    </div>
+  </div>
+</main>
+<datalist id="workers"></datalist><datalist id="krSuppliers"></datalist><datalist id="krProducts"></datalist><datalist id="tvCats"></datalist>
+<div id="mobile">
+  <div class="mhead"><b>Tsunami</b> — Vazifalarim</div>
+  <div class="mbody">
+    <label class="mlabel">Ismingiz<input id="mWorker" list="workers" placeholder="Ismingizni yozing" maxlength="60"></label>
+    <div class="status" id="mStatus"></div>
+    <div id="mList"></div>
+    <a class="mback" href="#vazifalar">Boshqaruv paneliga</a>
+  </div>
+</div>
+
+<script>
+const SECTIONS = [
+  { id:"hisobotlar", name:"Hisobotlar", desc:"Umumiy ko'rsatkichlar va davriy hisobotlar.",
+    kpis:["Bugungi savdo","Oylik savdo","Foyda","Qarzlar"],
+    subs:[
+    {n:"Umumiy ko'rsatkichlar",cols:["Ko'rsatkich","Qiymat"]},
+    {n:"Sotuv hisoboti",cols:["Guruh","Savdo"]},
+    {n:"Foyda va zarar",cols:["Modda","Summa"]},
+    {n:"Qaytarishlar",cols:["Tovar","Summa"]},
+    {n:"Ombor harakati",cols:["Tovar","Kirim","Chiqim"]},
+    {n:"Ombor qiymati",cols:["Guruh","Tannarx"]},
+    {n:"Balanslar",cols:["Nomi","Balans"]},
+    {n:"Balans hisoboti",cols:["Modda","Summa"]},
+    {n:"Yetkazib beruvchilar aylanmasi",cols:["Yetkazib beruvchi","Summa"]},
+    {n:"Bito sotuvlari",cols:["Sana","Chek","Tovarlar","Summa","Sotuvchi","Mijoz"]},
+    {n:"Sotuv rejasi",cols:["Sotuvchi","Bo'lim","Reja","Fakt","Foiz"]},
+    {n:"Top tovarlar",cols:["#","Tovar","Soni","Summa"]},
+    {n:"Qarzdor cheklar",cols:["Sana","Chek","Mijoz","Qarz"]},
+    {n:"Mijozlar tahlili (ABC XYZ)",cols:["Mijoz","Guruh"]},
+    {n:"Tashriflar hisoboti",cols:["Agent","Foiz"]},
+    {n:"Yetkazib berish hisoboti",cols:["Kuryer","Yetkazildi"]},
+    {n:"Pul oqimi",cols:["Tur","Summa"]},
+    {n:"Sotuvchilar KPI",cols:["Sotuvchi","Foiz"]}
+  ] },
+  { id:"sotuv", name:"Sotuv", desc:"Sotuv jarayonlari: sotuv, qaytarish, yorliq va mijoz to'lovlari.",
+    kpis:[],
+    subs:[{n:"Sotuvlar",cols:["Sana","Mijoz","Summa","Holat"]},{n:"Qaytarish",cols:["Sana","Sotuv","Summa","Sabab"]},{n:"Yorliq (etiketka)",cols:["Mahsulot","IMEI","Narx","Yorliq"]},{n:"Mijozlar to'lovlari",cols:["Mijoz","Summa","Sana","To'lov turi"]},{n:"Bo'lib to'lash",cols:["Mijoz","Shartnoma","Qoldiq","Muddat"]}] },
+  { id:"marketing", name:"Marketing", desc:"Aksiyalar, chegirmalar va Telegram kanal postlari.",
+    kpis:[],
+    subs:[{n:"Chegirma",cols:["Mahsulot","Foiz","Boshlanish","Tugash"]},{n:"Mijozga chegirma",cols:["Mijoz","Foiz","Muddat"]},{n:"Aksiyalar",cols:["Nomi","Shart","Muddat","Holat"]},{n:"Kutilayotgan tovarlar",cols:["Tovar","Mijoz","So'ralgan sana","Holat"]},{n:"Telegram postlar",cols:["Sana","Mahsulot","Ko'rishlar"]}] },
+  { id:"crm", name:"CRM", desc:"Mijozlar bazasi, tarix va bonuslar.",
+    kpis:[],
+    subs:[{n:"Mijozlar",cols:["Ism","Telefon","Oxirgi xarid"]},{n:"Buyurtmalar",cols:["Buyurtma","Mijoz","Sana","Holat"]},{n:"Eslatmalar",cols:["Sana","Mijoz","Vazifa"]},{n:"Kategoriyalar",cols:["Kategoriya","Mijozlar soni"]}] },
+  { id:"vazifalar", name:"Vazifalar", desc:"Xodimlar uchun vazifalar va ularning holati.",
+    kpis:["Ochiq vazifalar","Bajarilgan","Muddati o'tgan","Bugungi"],
+    subs:[{n:"Ochiq",cols:["Vazifa","Mas'ul","Muddat"]},{n:"Bajarilgan",cols:["Vazifa","Mas'ul","Sana"]},{n:"Muddati o'tgan",cols:["Vazifa","Mas'ul","Muddat"]}] },
+  { id:"tarqatish", name:"Tarqatish", desc:"Filiallar va do'konlarga mahsulot tarqatish.",
+    kpis:[],
+    subs:[{n:"Kunlik tashriflar",cols:["Agent","Mijoz","Vaqt","Holat"]},{n:"Tashrif rejasi",cols:["Agent","Mijoz","Kunlar"]},{n:"Tashriflar",cols:["Tashrif","Agent","Mijoz","Sana","Holat"]},{n:"Agentlar",cols:["Agent","Bugun"]}] },
+  { id:"logistika", name:"Logistika", desc:"Yetkazib berish, transport va yo'nalishlar.",
+    kpis:[],
+    subs:[{n:"Yetkazib berishlar",cols:["Buyurtma","Manzil","Kuryer","Holat"]},{n:"Kuryerlar",cols:["Kuryer","Telefon","Holat"]},{n:"Tariflar",cols:["Tarif","Narx"]}] },
+  { id:"taminot", name:"Ta'minot", desc:"Yetkazib beruvchilar, xaridlar (zakup) va ularning qarzlari.",
+    kpis:[],
+    subs:[{n:"Zakup so'rovlari",cols:["So'rov","Sana","Mahsulot","Holat"]},{n:"Zakup buyurtmalari",cols:["Buyurtma","Yetkazib beruvchi","Sana","Holat"]},{n:"Tovar kirimi",cols:["Sana","Yetkazib beruvchi","Summa","Holat"]},{n:"Yetkazib beruvchiga qaytarish",cols:["Raqam","Yetkazib beruvchi","Sana","Sabab"]},{n:"Yetkazib beruvchilar",cols:["Nomi","Telefon","Balans"]},{n:"Yetkazib beruvchilarga to'lovlar",cols:["Sana","Yetkazib beruvchi","Summa"]}] },
+  { id:"ombor", name:"Ombor", desc:"Qoldiqlar, IMEI bo'yicha kuzatuv va inventarizatsiya.",
+    kpis:[],
+    subs:[{n:"Markirovkali qoldiq",cols:["Tovar","IMEI","Tannarx"]},{n:"Soni bo'yicha qoldiq",cols:["Tovar","Soni","Tannarx"]},{n:"Tovarlar",cols:["Tovar","Kategoriya","Shtrix-kod","Artikul"]},{n:"Kategoriyalar",cols:["Kategoriya","Tovarlar soni"]},{n:"Inventarizatsiya",cols:["Sana","Sklad","Farq"]},{n:"Spisaniyalar",cols:["Hujjat","Sana","Mahsulot","Soni","Sabab"]},{n:"Ichki ko'chirish",cols:["Hujjat","Sana","Qayerdan","Qayerga"]},{n:"Tashkiliy ko'chirish",cols:["Hujjat","Sana","Qayerdan","Qayerga"]},{n:"Skladlar",cols:["Sklad","Turi","Manzil"]}] },
+  { id:"moliya", name:"Moliya", desc:"Kassa, naqd pul, to'lovlar va balans.",
+    kpis:[],
+    subs:[{n:"Kassa",cols:["Kassa","Qoldiq"]},{n:"Tranzaksiyalar",cols:["Sana","Turi","Summa"]},{n:"Kassa sanog'i",cols:["Kassa","Farq"]},{n:"Boshlang'ich qoldiq",cols:["Kassa","Summa"]}] },
+  { id:"kadrlar", name:"Kadrlar", desc:"Xodimlar, davomat va ish haqi.",
+    kpis:[],
+    subs:[{n:"Xodimlar",cols:["Ism","Telefon","Lavozim"]},{n:"Davomat",cols:["Xodim","Keldi","Ketdi"]},{n:"Ish haqi",cols:["Xodim","Oylik","To'langan"]}] },
+  { id:"integratsiya", name:"Integratsiya", desc:"Bito API, Google Sheets va Telegram ulanishlari.",
+    kpis:[],
+    subs:[{n:"Ulanishlar",cols:["Manba","Holat"]},{n:"Bito'dan ko'chirish",cols:["Qadam","Holat"]},{n:"Xabar yuborish",cols:["Mijoz","Xabar"]}] },
+  { id:"ishlab-chiqarish", name:"Ishlab chiqarish", desc:"Ishlab chiqarish buyurtmalari va bosqichlari.",
+    kpis:["Buyurtmalar","Jarayonda","Tugatilgan","Kechikkan"],
+    subs:[{n:"Tarkib",cols:["Mahsulot","Material","Miqdor"]},{n:"Ishlab chiqarish",cols:["Raqam","Mahsulot","Soni","Holat"]},{n:"Bosqichlar",cols:["Bosqich","Tartib","Mas'ul"]},{n:"Texnologik karta",cols:["Karta","Mahsulot","Bosqichlar soni"]},{n:"Vazifalar",cols:["Vazifa","Bosqich","Mas'ul","Holat"]},{n:"Holat bo'yicha hisobot",cols:["Holat","Soni"]},{n:"Reja",cols:["Mahsulot","Reja","Fakt","Foiz"]},{n:"Guruhlar",cols:["Guruh","Turi"],rows:[["Tarkib guruhi",""],["Texnologik karta guruhi",""]]},{n:"Xodimlar bo'yicha hisobot",cols:["Xodim","Mahsulot","Soni"]}] },
+  { id:"malumotnoma", name:"Ma'lumotnoma", desc:"Mahsulotlar, kategoriyalar, narx qoidalari va filiallar ro'yxati.",
+    kpis:[],
+    subs:[{n:"Narx o'rnatish",cols:["Mahsulot","Tannarx","Narx","Chegara"]},{n:"Narx tarixi",cols:["Vaqt","Mahsulot","Narx"]}] },
+  { id:"vositalar", name:"Vositalar", desc:"Yordamchi vositalar: eksport, nusxa olish, tekshiruvlar.",
+    kpis:[],
+    subs:[{n:"Narxlar ro'yxati",cols:["Mahsulot","Narx"]},{n:"Eksport",cols:["Fayl"]},{n:"Zaxira nusxa",cols:["Fayl"]},{n:"Tekshiruvlar",cols:["Tekshiruv","Natija"]}] },
+  { id:"sozlamalar", name:"Sozlamalar", desc:"Foydalanuvchilar, rollar va umumiy sozlamalar.",
+    kpis:[],
+    subs:[
+    {n:"Asosiy sozlamalar",cols:["Sozlama","Qiymat"]},
+    {n:"Modullar",cols:["Modul","Holat"]},
+    {n:"Qaytarish sabablari",cols:["Sabab"]},
+    {n:"Tashrif maqsadlari",cols:["Maqsad"]},
+    {n:"Tashrif bekor qilish sabablari",cols:["Sabab"]},
+    {n:"Zakup sabablari",cols:["Sabab"]},
+    {n:"Yetkazib beruvchiga qaytarish sabablari",cols:["Sabab"]},
+    {n:"Spisaniya sabablari",cols:["Sabab"]},
+    {n:"Kassalar",cols:["Kassa","To'lov turlari"]},
+    {n:"Kirim va xarajat turlari",cols:["Tur"]},
+    {n:"Bo'lim va lavozimlar",cols:["Nomi"]}
+  ] }
+];
+/* Eski demo sozlamalar (Bito nusxasi) — olib tashlandi:
+{n:"Funksiyalar",cols:["Funksiya","Holat"],rows:[["POS","Yoqilgan"],["Mahsulot belgilari","Yoqilgan"],["Quti","Yoqilgan"],["Yaroqlilik muddati","Yoqilgan"],["Chek","Yoqilgan"],["Mahsulot izohlari","Yoqilgan"],["Mahsulot varianti","Yoqilgan"],["Tarkibiy mahsulot","Yoqilgan"],["Yetkazib berish lokatsiyasi","O'chirilgan"],["Bir nechta o'lchov birligi","O'chirilgan"],["Kuryerlar","Yoqilgan"],["Multi-sklad","Yoqilgan"],["Kutilayotgan mahsulot","Yoqilgan"],["Chegirmalar","Yoqilgan"]]},
+    {n:"Modullar",cols:["Modul","Holat"],rows:[["Hisobotlar","Yoqilgan"],["Sotuv","Yoqilgan"],["Marketing","Yoqilgan"],["CRM","Yoqilgan"],["Vazifalar","Yoqilgan"],["Tarqatish","Yoqilgan"],["Logistika","Yoqilgan"],["Ta'minot","Yoqilgan"],["Ombor","Yoqilgan"],["Moliya","Yoqilgan"],["Kadrlar","Yoqilgan"],["Integratsiya","Yoqilgan"],["Ishlab chiqarish","Yoqilgan"],["Ma'lumotnoma","Yoqilgan"],["Vositalar","Yoqilgan"]]},
+    {n:"Asosiy sozlamalar",cols:["Sozlama","Izoh"],rows:[["To'lov usullari",""],["Chek",""],["Bot xabari",""],["SMS sozlamalari",""],["Marketing SMS sozlamalari",""],["Yorliq (etiketka)",""],["Sodiqlik kartasi",""],["Qurilmalar",""],["Qurilma xavfsizligi",""],["Ochiq cheklar",""],["Sotuv sozlamalari",""],["Tarozi sozlamalari",""],["Tarqatish sozlamalari",""],["Valyuta sozlamalari",""],["Xaridorlarga eslatma",""],["Onlayn to'lov sozlamalari",""],["Chop etish shablonlari",""]]},
+    {n:"CRM sozlamalari",cols:["Sozlama","Izoh"],rows:[["Teglar",""],["Hisob-kitob parametrlari",""]]},
+    {n:"Ombor sozlamalari",cols:["Sozlama","Izoh"],rows:[["Umumiy",""],["SKU sozlamalari",""],["O'lchov birliklari",""],["Atributlar",""],["Qadoq turlari",""]]},
+    {n:"Tashkilotlar",cols:["Sozlama","Izoh"],rows:[["Tashkilotlar",""],["Qarz limiti",""],["Qarz muddati",""]]},
+    {n:"Foydalanuvchi sozlamalari",cols:["Sozlama","Izoh"],rows:[["Foydalanuvchi sozlamalari",""],["Tezkor tugmalar",""]]},
+    {n:"Obuna",cols:["Tarif","Muddat","Holat"]}
+*/
+
+const $ = id => document.getElementById(id);
+const menu = $("menu"), kpis = $("kpis"), subs = $("subs");
+let current = null, currentSub = 0;
+
+function renderSub(i) {
+  currentSub = i;
+  const s = current, sub = s.subs[i];
+  [...subs.children].forEach((b, j) => b.classList.toggle("on", j === i));
+  $("subtitle").innerHTML = sub.n + '<span class="badge">demo</span>';
+  $("cols").innerHTML = sub.cols.map(c => `<th>${c}</th>`).join("");
+  $("rows").innerHTML = sub.rows
+    ? sub.rows.map(r => `<tr><td>${r[0]}</td><td>${r[1]}</td></tr>`).join("")
+    : `<tr><td class="empty" colspan="${sub.cols.length}">Ma'lumot yo'q</td></tr>`;
+  if (current.id === "hisobotlar") renderSalesSub();
+  ["kirimApp", "tovarApp", "katApp"].forEach(a => $(a).classList.remove("fopen"));
+  const krOn = current.id === "taminot" && sub.n === "Tovar kirimi";
+  document.body.classList.toggle("kirim-on", krOn);
+  if (krOn) krRenderList();
+  const tvOn = current.id === "ombor" && sub.n === "Tovarlar";
+  document.body.classList.toggle("tovar-on", tvOn);
+  if (tvOn) tvRenderList();
+  const ktOn = current.id === "ombor" && sub.n === "Kategoriyalar";
+  document.body.classList.toggle("kat-on", ktOn);
+  if (ktOn) ktRenderList();
+  ptRoute(current.id, sub.n);
+  const qtOn = current.id === "sotuv" && sub.n === "Qaytarish";
+  if ($("qaytApp")) $("qaytApp").classList.remove("fopen");
+  document.body.classList.toggle("qaytApp-on", qtOn);
+  if (qtOn && window.qtRender) { qtSalesFill(); qtRender(); }
+  if (window.qtReasonsSub) qtReasonsSub();
+  const pyOn = current.id === "sotuv" && sub.n === "Mijozlar to'lovlari", blOn = current.id === "sotuv" && sub.n === "Bo'lib to'lash";
+  ["payApp", "bolApp"].forEach(a => { if ($(a)) $(a).classList.remove("fopen"); });
+  document.body.classList.toggle("payApp-on", pyOn); document.body.classList.toggle("bolApp-on", blOn);
+  if (pyOn && window.pyRender) { pyClientsFill(); pyRender(); }
+  if (blOn && window.blRender) { blSalesFill(""); blRender(); }
+  const slOn = current.id === "sotuv" && sub.n === "Sotuvlar";
+  $("sotuvApp").classList.remove("fopen");
+  document.body.classList.toggle("sotuvApp-on", slOn);
+  if (slOn) { slClientsFill(); slRender(); }
+  const ylOn = current.id === "sotuv" && sub.n === "Yorliq (etiketka)";
+  document.body.classList.toggle("yorliqApp-on", ylOn);
+  if (ylOn) ylOpen();
+}
+
+function render(id) {
+  document.body.classList.toggle("mob", id === "mobil");
+  if (id === "mobil") { view = "mobil"; document.title = "Vazifalarim — Tsunami"; renderMobile(); return; }
+  const s = SECTIONS.find(x => x.id === id) || SECTIONS[0];
+  current = s;
+  view = s.id;
+  document.body.classList.toggle("tasks-on", s.id === "vazifalar");
+  document.body.classList.toggle("sales-on", s.id === "hisobotlar");
+  $("title").innerHTML = s.name + '<span class="badge">demo</span>';
+  $("desc").textContent = s.desc;
+  kpis.innerHTML = s.kpis.map(k => `<div class="kpi"><div class="label">${k}</div><div class="value">—</div></div>`).join("");
+  subs.innerHTML = "";
+  s.subs.forEach((sub, i) => {
+    const b = document.createElement("button");
+    b.textContent = sub.n;
+    b.onclick = () => renderSub(i);
+    subs.appendChild(b);
+  });
+  document.title = s.name + " — Tsunami Boshqaruv";
+  [...menu.children].forEach(a => a.classList.toggle("active", a.dataset.id === s.id));
+  renderSub(0);
+  if (s.id === "vazifalar") renderTasks();
+  if (s.id === "hisobotlar") renderSalesTop();
+}
+
+// ===== Vazifalar: umumiy ma'lumotlar bazasi (db) =====
+const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ST = { yangi:"Yangi", jarayonda:"Jarayonda", bajarildi:"Bajarildi" };
+const PR = { oddiy:"Oddiy", muhim:"Muhim", shoshilinch:"Shoshilinch" };
+let TASKS = [], dbRef = null, dbState = "loading", taskFilter = "all", readOnly = false, view = "", lastMsg = "", pendingDel = "", msgTimer = null;
+const busy = new Set();
+function lsGet(k) { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } }
+function lsSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function today() { return new Date().toLocaleDateString("en-CA"); }
+function fmt(x) { try { return new Date(x).toLocaleString("ru-RU", { dateStyle:"short", timeStyle:"short" }); } catch (e) { return ""; } }
+function normSt(t) { return ST[t.status] ? t.status : "yangi"; }
+function say(m) { lastMsg = m; clearTimeout(msgTimer); msgTimer = setTimeout(() => { lastMsg = ""; refreshTasks(); }, 5000); refreshTasks(); }
+function statusLine() {
+  return ({ loading:"Yuklanmoqda…", slow:"Ma'lumotlarga hozircha ulanib bo'lmadi.", cache:"Saqlangan nusxa ko'rsatilmoqda…", error:"Ma'lumotlar bazasi bilan aloqa uzildi. Sahifani qayta oching.", off:"Vazifalar bu ko'rinishda ishlamaydi: claude.ai'ga kirgan holda oching.", ok:"" })[dbState] || "";
+}
+function handleErr(e) {
+  const c = e && e.code;
+  if (c === "invalid_argument") readOnly = true;
+  say(c === "quota_exceeded" ? "Joy tugadi: eski vazifalarni o'chiring." : readOnly ? "Sizda o'zgartirish huquqi yo'q. Egasi sizga «Contributor» ruxsatini bersin." : "Saqlab bo'lmadi, qayta urinib ko'ring.");
+}
+function refreshTasks() { if (view === "mobil") renderMobile(); else if (view === "vazifalar") renderTasks(); }
+function fillWorkers() {
+  const names = [...new Set(TASKS.map(t => String(t.worker || "").trim()).filter(Boolean))];
+  const html = names.map(n => `<option value="${esc(n)}">`).join("");
+  const dl = $("workers"); if (dl.innerHTML !== html) dl.innerHTML = html;
+}
+function card(t, mob) {
+  const st = normSt(t), pr = PR[t.priority] ? t.priority : "oddiy";
+  const late = t.due && st !== "bajarildi" && String(t.due) < today();
+  const can = dbRef && !readOnly;
+  let act = "";
+  if (mob && can) {
+    if (st === "yangi") act += `<button class="go" data-id="${esc(t.id)}" data-st="jarayonda">Boshladim</button>`;
+    if (st !== "bajarildi") act += `<button class="done" data-id="${esc(t.id)}" data-st="bajarildi">Bajarildi</button>`;
+  } else if (!mob && can) {
+    act = `<button data-del="${esc(t.id)}">${pendingDel === t.id ? "Ha, o'chirish" : "O'chirish"}</button>`;
+  }
+  return `<div class="tcard pr-${pr}"><div class="ttop"><b>${esc(t.title)}</b><span class="st st-${st}">${ST[st]}</span></div>`
+    + (t.desc ? `<div class="tdesc">${esc(t.desc)}</div>` : "")
+    + `<div class="tmeta">${mob ? "" : "Ishchi: " + esc(t.worker) + " · "}Muddat: ${t.due ? esc(t.due) : "—"} · ${PR[pr]}${late ? ` · <span class="late">Muddati o'tgan</span>` : ""}${st === "bajarildi" && t.doneAt ? " · Bajarildi: " + esc(fmt(t.doneAt)) : ""}</div>`
+    + (act ? `<div class="tact">${act}</div>` : "") + `</div>`;
+}
+function renderTasks() {
+  const counts = { all:TASKS.length, yangi:0, jarayonda:0, bajarildi:0 };
+  TASKS.forEach(t => counts[normSt(t)]++);
+  $("tFilters").innerHTML = [["all","Barchasi"],["yangi","Yangi"],["jarayonda","Jarayonda"],["bajarildi","Bajarildi"]].map(([k, l]) => `<button data-f="${k}" class="${taskFilter === k ? "on" : ""}">${l} (${counts[k]})</button>`).join("");
+  $("tStatus").textContent = [statusLine(), lastMsg].filter(Boolean).join(" ");
+  const list = TASKS.filter(t => taskFilter === "all" || normSt(t) === taskFilter);
+  $("tList").innerHTML = list.length ? list.map(t => card(t, false)).join("") : `<div class="empty-box">${dbState === "ok" || dbState === "cache" ? "Hozircha vazifa yo'q" : ""}</div>`;
+  $("tSend").disabled = !dbRef || readOnly;
+  fillWorkers();
+}
+function renderMobile() {
+  const inp = $("mWorker");
+  if (!inp.value && document.activeElement !== inp) inp.value = lsGet("tsunami_worker");
+  const name = inp.value.trim().toLowerCase();
+  $("mStatus").textContent = [statusLine(), lastMsg].filter(Boolean).join(" ");
+  fillWorkers();
+  if (!name) { $("mList").innerHTML = `<div class="empty-box">Vazifalaringizni ko'rish uchun ismingizni yozing.</div>`; return; }
+  const order = { yangi:0, jarayonda:1, bajarildi:2 };
+  const mine = TASKS.filter(t => String(t.worker || "").trim().toLowerCase() === name).sort((a, b) => order[normSt(a)] - order[normSt(b)]);
+  $("mList").innerHTML = mine.length ? mine.map(t => card(t, true)).join("") : `<div class="empty-box">${dbState === "ok" || dbState === "cache" ? "Sizga hozircha vazifa berilmagan." : ""}</div>`;
+}
+async function setStatus(id, status) {
+  const t = TASKS.find(x => x.id === id);
+  if (!dbRef || !t || normSt(t) === status || busy.has(id)) return;
+  busy.add(id);
+  const upd = { status };
+  if (status === "bajarildi") upd.doneAt = new Date().toISOString();
+  if (status === "jarayonda") upd.startedAt = new Date().toISOString();
+  try { await dbRef.doc(id).update(upd); say(status === "bajarildi" ? "Zo'r! Vazifa bajarildi deb belgilandi." : "Vazifa boshlandi."); }
+  catch (e) { handleErr(e); }
+  busy.delete(id);
+}
+async function delTask(id) {
+  if (!dbRef || busy.has(id)) return;
+  busy.add(id);
+  try { await dbRef.doc(id).delete(); say("Vazifa o'chirildi."); } catch (e) { handleErr(e); }
+  busy.delete(id); pendingDel = "";
+}
+$("tForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  if (!dbRef || readOnly) { handleErr(null); return; }
+  const title = $("tTitle").value.trim(), worker = $("tWorker").value.trim();
+  if (!title || !worker) return;
+  const btn = $("tSend"); btn.disabled = true;
+  try {
+    await dbRef.add({ title, desc:$("tDesc").value.trim(), worker, due:$("tDue").value || "", priority:$("tPr").value, status:"yangi", createdAt:new Date().toISOString() });
+    $("tTitle").value = ""; $("tDesc").value = ""; $("tDue").value = "";
+    say("Vazifa yuborildi: " + worker);
+  } catch (err) { handleErr(err); }
+  btn.disabled = !dbRef || readOnly;
+});
+$("tList").addEventListener("click", e => {
+  const b = e.target.closest("button[data-del]"); if (!b) return;
+  if (pendingDel === b.dataset.del) delTask(b.dataset.del);
+  else { pendingDel = b.dataset.del; renderTasks(); }
+});
+$("tFilters").addEventListener("click", e => { const b = e.target.closest("button[data-f]"); if (b) { taskFilter = b.dataset.f; renderTasks(); } });
+$("mList").addEventListener("click", e => { const b = e.target.closest("button[data-st]"); if (b) setStatus(b.dataset.id, b.dataset.st); });
+$("mWorker").addEventListener("input", () => { lsSet("tsunami_worker", $("mWorker").value.trim()); renderMobile(); });
+(async () => {
+  const timer = setTimeout(() => { if (dbState === "loading") { dbState = "slow"; refreshTasks(); } }, 10000);
+  let db = null;
+  try { db = window.claude && window.claude.use ? await window.claude.use("db") : null; } catch (e) { db = null; }
+  if (!db) { clearTimeout(timer); dbState = "off"; refreshTasks(); return; }
+  dbRef = db.collection("tasks");
+  try { const u = await window.claude.use("user"); if (u && u.can) { const w = await u.can("data.write"); if (w === false) readOnly = true; } } catch (e) {}
+  refreshTasks();
+  dbRef.orderBy("createdAt", "desc").onSnapshot(snap => {
+    TASKS = snap.docs.map(d => Object.assign({ id:d.id }, d.data()));
+    if (!snap.metadata.fromCache) { clearTimeout(timer); dbState = "ok"; }
+    else if (dbState === "loading" || dbState === "slow") dbState = "cache";
+    refreshTasks();
+  }, () => { clearTimeout(timer); dbState = "error"; refreshTasks(); });
+})();
+
+// ===== Sotuv: Google Sheets (Bito sinxroni) orqali jonli ma'lumot =====
+const SHEET_ID = "1fgsNMTOyX4_kyxFXcMT4YUSFH6SfZmh4HRS7u-ej-tE";
+const GS = "Google Sheets";
+const RANGES = { checks:"'Savdo — cheklar'!A1:N2000", items:"'Savdo — tovarlar'!A1:J4000", plan:"'Sotuvchi reja'!A1:G50", holat:"Holat!A1:D2" };
+const SALES = { checks:null, items:null, plan:null, holat:null, err:"", off:false, storedAt:0, mcp:null };
+const LIVE_SUBS = ["Bito sotuvlari", "Sotuv rejasi", "Top tovarlar", "Qarzdor cheklar"];
+let salesPeriod = "today", salesDept = "all";
+const num = v => { const n = Number(String(v == null ? "" : v).replace(/\s/g, "").replace(",", ".")); return isFinite(n) ? n : 0; };
+const money = n => Math.round(n).toLocaleString("ru-RU") + " so'm";
+function dayStr(d) { return d.toLocaleDateString("en-CA"); }
+function periodRange(p) {
+  const now = new Date(), t = dayStr(now);
+  if (p === "today") return [t, t];
+  if (p === "yesterday") { const d = new Date(now); d.setDate(d.getDate() - 1); const y = dayStr(d); return [y, y]; }
+  if (p === "week") { const d = new Date(now); d.setDate(d.getDate() - 6); return [dayStr(d), t]; }
+  if (p === "month") return [t.slice(0, 8) + "01", t];
+  return ["0000-00-00", t];
+}
+function rowsOf(vals) { return Array.isArray(vals) ? vals.slice(1).filter(r => Array.isArray(r) && r.length) : []; }
+function planMap() {
+  const m = {};
+  rowsOf(SALES.plan).forEach(r => { const name = String(r[0] || "").trim(); if (name) m[name] = { dept:String(r[1] || "").trim(), plan:num(r[2]) }; });
+  return m;
+}
+function checksAll() {
+  return rowsOf(SALES.checks).map(r => ({ date:String(r[0] || ""), day:String(r[0] || "").slice(0, 10), no:String(r[1] || ""), qty:num(r[2]), goods:String(r[3] || ""), total:num(r[6]), paid:num(r[7]), debt:num(r[8]), pay:String(r[9] || ""), seller:String(r[10] || "").trim(), client:String(r[11] || ""), cur:String(r[12] || "UZS").trim().toUpperCase() }));
+}
+function inScope(rec, pm, ignorePeriod) {
+  const [a, b] = periodRange(ignorePeriod ? "month" : salesPeriod);
+  if (rec.day < a || rec.day > b) return false;
+  if (salesDept === "all") return true;
+  const p = pm[rec.seller];
+  return (p ? p.dept : "Boshqa") === salesDept;
+}
+function salesReady() { return SALES.checks && SALES.plan; }
+function salesStatus() {
+  if (SALES.off) return "Jonli ma'lumot bu ko'rinishda ishlamaydi: sahifani claude.ai'da, tizimga kirgan holda oching.";
+  const e = SALES.err;
+  if (e === "needs_reauth") return "Google Sheets ulanishi eskirgan: claude.ai → Settings → Connectors bo'limida Google Sheets'ni qayta ulang.";
+  if (e === "server_not_connected" || e === "selection_required") return "Google Sheets ulanmagan: claude.ai → Settings → Connectors bo'limida Google Sheets'ni qo'shing.";
+  if (e === "approval_required") return "Google Sheets'dan o'qish uchun ruxsatingiz kerak.";
+  if (e === "not_in_manifest" || e === "blocked_by_policy") return "Bu sahifaga Google Sheets'dan o'qishga ruxsat berilmagan.";
+  if (e === "tool_error") return "Jadvalni o'qib bo'lmadi: jadval o'chirilgan yoki sizda unga kirish huquqi yo'q.";
+  if (e) return "Ma'lumotni hozircha olib bo'lmadi, birozdan keyin o'zi qayta urinadi.";
+  if (!salesReady()) return "Yuklanmoqda…";
+  return "";
+}
+function freshness() {
+  const h = rowsOf([[]].concat(SALES.holat || [])).find(r => String(r[0] || "").indexOf("Oxirgi") === 0);
+  const syncAt = h ? String(h[1] || "") : "";
+  return syncAt ? "Bito'dan oxirgi sinxron: " + syncAt : "";
+}
+function renderSalesTop() {
+  const P = [["today","Bugun"],["yesterday","Kecha"],["week","7 kun"],["month","Shu oy"],["all","30 kun"]];
+  const D = [["all","Umumiy"],["5 Tech Mobile","5 Tech Mobile"],["5 Tech Texnika","5 Tech Texnika"]];
+  const st = salesStatus();
+  $("salesBar").innerHTML =
+    `<div class="seg">${P.map(([k, l]) => `<button data-p="${k}" class="${salesPeriod === k ? "on" : ""}">${l}</button>`).join("")}</div>`
+    + `<div class="seg">${D.map(([k, l]) => `<button data-d="${esc(k)}" class="${salesDept === k ? "on" : ""}">${l}</button>`).join("")}</div>`
+    + `<div class="fresh">${esc(st || freshness())}${SALES.err === "approval_required" ? ` <button data-allow="1">Ruxsat berish</button>` : ""}</div>`;
+  const pm = planMap();
+  const cs = salesReady() ? checksAll().filter(c => inScope(c, pm)) : [];
+  const uzs = cs.filter(c => c.cur === "UZS");
+  const usd = cs.filter(c => c.cur !== "UZS");
+  const sum = uzs.reduce((s, c) => s + c.total, 0);
+  const debt = uzs.reduce((s, c) => s + (c.debt > 0 ? c.debt : 0), 0);
+  const usdSum = usd.reduce((s, c) => s + c.total, 0);
+  const v = x => salesReady() ? x : "—";
+  const K = [
+    ["Tushum", v(money(sum)) + (usd.length && salesReady() ? ` <small>+ ${Math.round(usdSum).toLocaleString("ru-RU")} $</small>` : "")],
+    ["Cheklar soni", v(cs.length.toLocaleString("ru-RU"))],
+    ["O'rtacha chek", v(uzs.length ? money(sum / uzs.length) : "0 so'm")],
+    ["To'lanmagan (qarz)", v(money(debt))]
+  ];
+  $("kpis").innerHTML = K.map(([l, val]) => `<div class="kpi"><div class="label">${l}</div><div class="value">${val}</div></div>`).join("");
+}
+function renderSalesSub() {
+  const sub = current.subs[currentSub];
+  if (!sub || LIVE_SUBS.indexOf(sub.n) < 0) return;
+  $("subtitle").innerHTML = esc(sub.n) + '<span class="badge live">jonli</span>';
+  const pm = planMap();
+  const msg = salesStatus();
+  const fill = (cols, rows) => {
+    $("cols").innerHTML = cols.map(c => `<th>${c}</th>`).join("");
+    $("rows").innerHTML = !salesReady() ? `<tr><td class="empty" colspan="${cols.length}">${esc(msg)}</td></tr>`
+      : rows.length ? rows.join("") : `<tr><td class="empty" colspan="${cols.length}">Tanlangan davrda ma'lumot yo'q</td></tr>`;
+  };
+  const sm = (n, cur) => cur && cur !== "UZS" ? Math.round(n).toLocaleString("ru-RU") + " " + esc(cur) : money(n);
+  if (!salesReady()) { fill(["Ma'lumot"], []); return; }
+  const all = checksAll();
+  if (sub.n === "Bito sotuvlari") {
+    const cs = all.filter(c => inScope(c, pm));
+    fill(["Sana","Chek","Tovarlar","Summa","Sotuvchi","Mijoz"], cs.map(c => `<tr><td>${esc(c.date)}</td><td>${esc(c.no)}</td><td>${esc(c.goods)}</td><td class="num">${sm(c.total, c.cur)}</td><td>${esc(c.seller)}</td><td>${esc(c.client)}</td></tr>`));
+  } else if (sub.n === "Sotuv rejasi") {
+    const fact = {};
+    all.filter(c => c.cur === "UZS" && inScope(c, pm, true)).forEach(c => { fact[c.seller] = (fact[c.seller] || 0) + c.total; });
+    const names = [...new Set(Object.keys(pm).concat(Object.keys(fact)))].filter(n => n && (salesDept === "all" || (pm[n] ? pm[n].dept : "Boshqa") === salesDept));
+    names.sort((a, b) => (fact[b] || 0) - (fact[a] || 0));
+    fill(["Sotuvchi","Bo'lim","Oylik reja","Shu oy sotuv","Bajarildi"], names.map(n => {
+      const p = pm[n], f = fact[n] || 0, pct = p && p.plan ? Math.round(f / p.plan * 100) : null;
+      return `<tr><td>${esc(n)}</td><td>${esc(p ? p.dept : "Boshqa")}</td><td class="num">${p && p.plan ? money(p.plan) : "—"}</td><td class="num">${money(f)}</td><td class="num">${pct == null ? "—" : `<span class="pct ${pct >= 100 ? "ok" : pct >= 50 ? "mid" : "low"}">${pct}%</span>`}</td></tr>`;
+    }));
+  } else if (sub.n === "Top tovarlar") {
+    const curOf = {};
+    all.forEach(c => { curOf[c.no] = c.cur; });
+    const okNos = new Set(all.filter(c => inScope(c, pm)).map(c => c.no));
+    const agg = {};
+    rowsOf(SALES.items).forEach(r => {
+      const no = String(r[1] || ""); if (!okNos.has(no) || (curOf[no] || "UZS") !== "UZS") return;
+      const name = String(r[2] || "").trim(); if (!name) return;
+      const a = agg[name] || (agg[name] = { qty:0, sum:0 });
+      a.qty += num(r[3]); a.sum += num(r[6]);
+    });
+    const top = Object.entries(agg).sort((x, y) => y[1].sum - x[1].sum).slice(0, 30);
+    fill(["#","Tovar","Soni","Summa"], top.map(([n, a], i) => `<tr><td>${i + 1}</td><td>${esc(n)}</td><td class="num">${a.qty.toLocaleString("ru-RU")}</td><td class="num">${money(a.sum)}</td></tr>`));
+  } else if (sub.n === "Qarzdor cheklar") {
+    const cs = all.filter(c => inScope(c, pm) && c.debt > 0);
+    fill(["Sana","Chek","Mijoz","Summa","To'langan","Qarz","To'lov"], cs.map(c => `<tr><td>${esc(c.date)}</td><td>${esc(c.no)}</td><td>${esc(c.client)}</td><td class="num">${sm(c.total, c.cur)}</td><td class="num">${sm(c.paid, c.cur)}</td><td class="num late">${sm(c.debt, c.cur)}</td><td>${esc(c.pay)}</td></tr>`));
+  }
+}
+function renderSalesIfOpen() { if (view === "hisobotlar") { renderSalesTop(); renderSalesSub(); } }
+function onSheet(key, ev) {
+  if (ev.type === "data") {
+    const p = ev.result && ev.result.payload;
+    let vals = p && Array.isArray(p.values) ? p.values : [];
+    if (typeof p === "string") { try { const j = JSON.parse(p); vals = Array.isArray(j.values) ? j.values : []; } catch (e) { vals = []; } }
+    SALES[key] = vals;
+    SALES.err = "";
+  } else {
+    const code = ev.error && ev.error.code;
+    if (["needs_reauth", "server_not_connected", "blocked_by_policy", "approval_required", "not_in_manifest", "selection_required"].indexOf(code) >= 0) SALES[key] = null;
+    if (["not_granted", "capability_disabled", "capability_removed"].indexOf(code) >= 0) { SALES.off = true; }
+    else SALES.err = code || "upstream_error";
+  }
+  renderSalesIfOpen();
+}
+async function allowSheets() {
+  if (!SALES.mcp) return;
+  for (const [k, range] of Object.entries(RANGES)) {
+    try { const r = await SALES.mcp.callTool(GS, "get_values", { spreadsheetId:SHEET_ID, range }); onSheet(k, { type:"data", result:r }); }
+    catch (e) { onSheet(k, { type:"error", error:e }); break; }
+  }
+}
+$("salesBar").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.p) salesPeriod = b.dataset.p;
+  else if (b.dataset.d) salesDept = b.dataset.d;
+  else if (b.dataset.allow) { allowSheets(); return; }
+  renderSalesIfOpen();
+});
+(async () => {
+  let mcp = null;
+  try { mcp = window.claude && window.claude.use ? await window.claude.use("mcp") : null; } catch (e) { mcp = null; }
+  if (!mcp) { SALES.off = true; renderSalesIfOpen(); return; }
+  SALES.mcp = mcp;
+  Object.entries(RANGES).forEach(([k, range]) => {
+    try { mcp.watchTool(GS, "get_values", { spreadsheetId:SHEET_ID, range }, ev => onSheet(k, ev), { refetchInterval:120000 }); }
+    catch (e) { onSheet(k, { type:"error", error:{ code:"bad_request" } }); }
+  });
+})();
+
+// ===== Ta'minot: Tovar kirimi (chernovik yoki to'g'ridan-to'g'ri omborga) =====
+const BASE_ID = "1dkvfdr3UANgA37tpQ8_paYEsVg8uelNs9dWpv9_bSOY";
+const KR_RANGE = "Kirimlar!A1:P5000";
+const KR = { list:[], mcp:null, state:"loading", ro:false, filter:"all", msg:"", msgT:null, editId:"", busy:false, pendDel:"", open:"",
+  suppliers:[], products:[], orgs:{ "5 Tech Mobile":["Asosiy","Invertar mobile"], "5 Tech Texnika":["Asosiy Texnika","Invertar Texnika"] } };
+const KR_ST = { draft:"Chernovik", done:"Omborda" };
+let krItems = [];
+function krBlank() { return { name:"", qty:1, price:"", imei:"" }; }
+function krImeis(s) { return String(s || "").split(/[\s,;]+/).map(x => x.trim()).filter(Boolean); }
+function krMoney(n, cur) { const r = cur === "USD" ? Math.round(n * 100) / 100 : Math.round(n); return r.toLocaleString("ru-RU") + (cur === "USD" ? " $" : " so'm"); }
+function krProduct(name) { const n = String(name || "").trim().toLowerCase(); return n ? KR.products.find(p => p.name.toLowerCase() === n) : null; }
+function krSay(m) { KR.msg = m; clearTimeout(KR.msgT); KR.msgT = setTimeout(() => { KR.msg = ""; krRenderList(); }, 6000); krRenderList(); }
+function krFormMsg(m, bad) { const el = $("krFormMsg"); el.textContent = m || ""; el.classList.toggle("err", !!bad); }
+function krCodeMsg(c) {
+  if (c === "needs_reauth") return "Google ulanishi eskirgan: claude.ai → Settings → Connectors bo'limida Google Sheets'ni qayta ulang.";
+  if (c === "server_not_connected" || c === "selection_required") return "Google Sheets ulanmagan: claude.ai → Settings → Connectors bo'limida Google Sheets'ni qo'shing.";
+  if (c === "approval_required" || c === "not_in_manifest" || c === "consent_required") return "Tsunami bazasiga (Google Drive) yozish uchun ruxsat berilmadi. Qayta bosib, ruxsat bering.";
+  if (c === "blocked_by_policy") return "Tashkilot sozlamalari Google Sheets'ga yozishni taqiqlagan.";
+  if (c === "tool_error") return "Google jadval so'rovni rad etdi: «Tsunami — baza» jadvaliga kirish huquqingizni tekshiring.";
+  return "";
+}
+function krErr(e, write) {
+  const c = e && e.code, m = krCodeMsg(c);
+  if (m) return krFormMsg(m, true);
+  krFormMsg(write ? "Javob kelmadi: yozuv saqlangan bo'lishi ham mumkin. Pastdagi ro'yxatni tekshirib, kerak bo'lsa qayta urining." : "Bazaga ulanib bo'lmadi, qayta urinib ko'ring.", true);
+}
+function krDbLine() {
+  if (KR.state === "ok") return "";
+  if (KR.state === "loading") return "Tsunami bazasidan yuklanmoqda…";
+  if (KR.state === "off") return "Kirimlar bu ko'rinishda ishlamaydi: sahifani claude.ai'da, tizimga kirgan holda oching.";
+  return krCodeMsg(KR.state) || "Tsunami bazasiga (Google Drive) hozircha ulanib bo'lmadi, birozdan keyin o'zi qayta urinadi.";
+}
+// ---- Google Drive bazasi: «Tsunami — baza» jadvali ----
+function krParse(vals) {
+  const out = [];
+  (Array.isArray(vals) ? vals : []).forEach((r, i) => {
+    if (!i || !Array.isArray(r) || !r[0]) return;
+    const holat = String(r[2] || "").trim();
+    if (holat === "O'chirilgan") return;
+    let items = [];
+    try { items = JSON.parse(r[12] || "[]"); } catch (e) { items = []; }
+    out.push({ id:String(r[0]), row:i + 1, number:Number(r[1]) || 0, state:holat === "Omborda" ? "done" : "draft", date:String(r[3] || ""), supplier:String(r[4] || ""), org:String(r[5] || ""), warehouse:String(r[6] || ""), currency:String(r[7] || "USD"), rate:Number(r[8]) || 0, note:String(r[9] || ""), total:Number(r[11]) || 0, items:Array.isArray(items) ? items : [], createdAt:String(r[13] || ""), updatedAt:String(r[14] || ""), receivedAt:String(r[15] || "") });
+  });
+  return out.sort((a, b) => b.number - a.number);
+}
+function krApplyList(vals) {
+  KR.list = krParse(vals); KR.state = "ok";
+  if (PARTY.supApp) PARTY.supApp.render();
+  if (KR.editId) { const k = KR.list.find(x => x.id === KR.editId); if (!k || k.state !== "draft") { krResetForm(); krFormMsg("Tahrirlanayotgan chernovik boshqa joyda o'zgartirildi.", true); } }
+  krRenderList();
+}
+async function krReload() {
+  const r = await KR.mcp.callTool(GS, "get_values", { spreadsheetId:BASE_ID, range:KR_RANGE }, { cache:false });
+  krApplyList(krVals({ result:r }));
+}
+// Matn katakchalari ' bilan yoziladi: Google ularni sana, raqam yoki formulaga aylantirmasin
+const krT = v => { const x = String(v == null ? "" : v); return x ? "'" + x : ""; };
+function krRowOf(b) {
+  return [krT(b.id), b.number, b.state === "done" ? "Omborda" : "Chernovik", krT(b.date), krT(b.supplier), krT(b.org), krT(b.warehouse), b.currency, b.rate || "", krT(b.note),
+    b.items.reduce((s, it) => s + it.qty, 0), b.total, krT(JSON.stringify(b.items)), krT(b.createdAt), krT(b.updatedAt), krT(b.receivedAt)];
+}
+function krItemRows(b) {
+  const rows = [];
+  b.items.forEach(it => {
+    const base = [krT(b.id), b.number, krT(b.date), krT(b.supplier), krT(b.org), krT(b.warehouse), krT(it.name), krT(it.sku)];
+    if (it.imeis && it.imeis.length) it.imeis.forEach(m => rows.push(base.concat([1, it.price, b.currency, it.price, krT(m), krT(b.receivedAt)])));
+    else rows.push(base.concat([it.qty, it.price, b.currency, it.qty * it.price, "", krT(b.receivedAt)]));
+  });
+  return rows;
+}
+function krFillOrgs() {
+  const orgSel = $("krOrg"), keep = orgSel.value;
+  const orgs = Object.keys(KR.orgs).sort();
+  orgSel.innerHTML = orgs.map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join("");
+  orgSel.value = orgs.indexOf(keep) >= 0 ? keep : orgs[0] || "";
+  krFillWh();
+}
+function krFillWh(want) {
+  const whSel = $("krWh"), keep = want || whSel.value;
+  const list = (KR.orgs[$("krOrg").value] || []).slice().sort();
+  whSel.innerHTML = list.map(w => `<option value="${esc(w)}">${esc(w)}</option>`).join("");
+  whSel.value = list.indexOf(keep) >= 0 ? keep : list[0] || "";
+}
+function krRowSum(it) { return (Number(it.qty) || 0) * (Number(it.price) || 0); }
+function krTotals() {
+  const cur = $("krCur").value;
+  let total = 0, qty = 0;
+  krItems.forEach((it, i) => {
+    total += krRowSum(it); qty += Number(it.qty) || 0;
+    const cell = document.querySelector(`#krRows tr[data-i="${i}"] [data-sum]`);
+    if (cell) cell.textContent = krMoney(krRowSum(it), cur);
+  });
+  const rate = Number($("krRate").value) || 0;
+  $("krTotal").textContent = `Jami: ${qty.toLocaleString("ru-RU")} dona · ${krMoney(total, cur)}` + (rate && cur === "USD" ? ` ≈ ${krMoney(total * rate, "UZS")}` : "");
+}
+function krRenderRows() {
+  if (!krItems.length) krItems = [krBlank()];
+  $("krRows").innerHTML = krItems.map((it, i) => {
+    const p = krProduct(it.name);
+    return `<tr data-i="${i}"><td>${i + 1}</td>`
+      + `<td><input data-f="name" list="krProducts" value="${esc(it.name)}" placeholder="Tovar nomi, SKU yoki shtrix-kod" maxlength="160"></td>`
+      + `<td><input data-f="qty" class="sm" type="number" min="1" step="1" value="${esc(it.qty)}"></td>`
+      + `<td><input data-f="price" class="sm" type="number" min="0" step="any" value="${esc(it.price)}" placeholder="0"></td>`
+      + `<td><textarea data-f="imei" rows="1" placeholder="${p && p.marked ? "IMEI majburiy" : "ixtiyoriy"}">${esc(it.imei)}</textarea></td>`
+      + `<td class="num" data-sum></td><td><button type="button" data-rm="${i}" title="Qatorni o'chirish">×</button></td></tr>`;
+  }).join("");
+  krTotals();
+}
+function krResetForm() {
+  KR.editId = "";
+  $("krDate").value = new Date().toLocaleDateString("en-CA");
+  $("krSupplier").value = ""; $("krNote").value = ""; $("krRate").value = "";
+  $("krCur").value = "USD";
+  krFillOrgs();
+  krItems = [krBlank()];
+  $("krFormTitle").textContent = "Yangi tovar kirimi";
+  $("krCancel").hidden = true;
+  krRenderRows();
+}
+function krLoad(id) {
+  const k = KR.list.find(x => x.id === id);
+  if (!k || k.state !== "draft") return false;
+  KR.editId = id;
+  $("krDate").value = String(k.date || "").slice(0, 10);
+  $("krSupplier").value = k.supplier || "";
+  if (k.org && !KR.orgs[k.org]) KR.orgs[k.org] = [];
+  if (k.org && k.warehouse && KR.orgs[k.org].indexOf(k.warehouse) < 0) KR.orgs[k.org].push(k.warehouse);
+  krFillOrgs(); $("krOrg").value = k.org || $("krOrg").value; krFillWh(k.warehouse);
+  $("krCur").value = k.currency === "UZS" ? "UZS" : "USD";
+  $("krRate").value = k.rate || ""; $("krNote").value = k.note || "";
+  krItems = (Array.isArray(k.items) ? k.items : []).map(it => ({ name:it.name || "", qty:it.qty || 1, price:it.price == null ? "" : it.price, imei:(it.imeis || []).join("\n") }));
+  $("krFormTitle").textContent = `Chernovik №${k.number || ""} tahrirlanmoqda`;
+  $("krCancel").hidden = false;
+  krRenderRows(); krFormMsg("");
+  return true;
+}
+function krNextNo() { return KR.list.reduce((m, k) => Math.max(m, Number(k.number) || 0), 0) + 1; }
+async function krSave(state) {
+  if (KR.busy) return;
+  if (!KR.mcp) { krFormMsg(krDbLine() || "Tsunami bazasi ulanmagan.", true); return; }
+  const doc = { date:$("krDate").value, supplier:$("krSupplier").value.trim(), org:$("krOrg").value, warehouse:$("krWh").value, currency:$("krCur").value, rate:Number($("krRate").value) || 0, note:$("krNote").value.trim() };
+  if (!doc.date) return krFormMsg("Kelgan sanani kiriting.", true);
+  if (!doc.supplier) return krFormMsg("Yetkazib beruvchini kiriting.", true);
+  if (!doc.org || !doc.warehouse) return krFormMsg("Tashkilot va omborni tanlang.", true);
+  const rows = krItems.filter(it => String(it.name).trim());
+  if (!rows.length) return krFormMsg("Kamida bitta tovar kiriting.", true);
+  const items = [], seen = new Set();
+  for (const it of rows) {
+    const name = String(it.name).trim(), qty = Number(it.qty), imeis = krImeis(it.imei);
+    if (!(qty > 0) || Math.floor(qty) !== qty) return krFormMsg(`«${name}»: sonini to'g'ri kiriting.`, true);
+    if (String(it.price).trim() === "" || !(Number(it.price) >= 0)) return krFormMsg(`«${name}»: narxini kiriting.`, true);
+    if (imeis.length && imeis.length !== qty) return krFormMsg(`«${name}»: IMEI soni (${imeis.length}) tovar soniga (${qty}) teng emas.`, true);
+    const p = krProduct(name);
+    if (state === "done" && p && p.marked && !imeis.length) return krFormMsg(`«${name}» IMEI bilan hisobga olinadi: omborga qabul qilishdan oldin IMEI kiriting.`, true);
+    for (const m of imeis) { if (seen.has(m)) return krFormMsg(`IMEI ${m} ikki marta kiritilgan.`, true); seen.add(m); }
+    items.push({ name, qty, price:Number(it.price), imeis, sku:p ? p.sku : "" });
+  }
+  if (state === "done") {
+    for (const k of KR.list) {
+      if (k.state !== "done" || k.id === KR.editId) continue;
+      for (const it of k.items || []) for (const m of it.imeis || []) if (seen.has(m)) return krFormMsg(`IMEI ${m} allaqachon №${k.number} kirimida omborga qabul qilingan.`, true);
+    }
+  }
+  const now = new Date().toISOString();
+  const body = Object.assign(doc, { items, total:items.reduce((s, it) => s + it.qty * it.price, 0), state, updatedAt:now });
+  if (state === "done") body.receivedAt = now;
+  KR.busy = true; document.querySelectorAll("#krForm [data-save]").forEach(b => { b.disabled = true; });
+  let step = "read";
+  try {
+    await krReload();
+    if (KR.editId) {
+      const ex = KR.list.find(x => x.id === KR.editId);
+      if (!ex || ex.state !== "draft") { krFormMsg("Bu chernovik o'zgargan yoki allaqachon omborga qabul qilingan.", true); throw null; }
+      Object.assign(body, { id:ex.id, number:ex.number, createdAt:ex.createdAt });
+      step = "write";
+      await KR.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`Kirimlar!A${ex.row}:P${ex.row}`, values:[krRowOf(body)] });
+    } else {
+      for (const it of items) for (const m of it.imeis) for (const k of KR.list) if (k.state === "done" && k.items.some(x => (x.imeis || []).indexOf(m) >= 0) && state === "done") { krFormMsg(`IMEI ${m} allaqachon №${k.number} kirimida omborga qabul qilingan.`, true); throw null; }
+      Object.assign(body, { id:"K" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), number:krNextNo(), createdAt:now });
+      step = "write";
+      await KR.mcp.callTool(GS, "append_values", { spreadsheetId:BASE_ID, range:"Kirimlar!A1", values:[krRowOf(body)] });
+    }
+    if (state === "done") { step = "items"; await KR.mcp.callTool(GS, "append_values", { spreadsheetId:BASE_ID, range:"'Kirim tovarlari'!A1", values:krItemRows(body) }); }
+    krResetForm(); krFormMsg(""); openForm("kirimApp", false);
+    krSay(state === "done" ? `Kirim №${body.number} omborga qabul qilindi.` : `Kirim №${body.number} chernovik sifatida saqlandi.`);
+    try { await krReload(); } catch (e) {}
+  } catch (e) {
+    if (e && step === "items") krFormMsg(`Kirim №${body.number} saqlandi, lekin tovar qatorlari «Kirim tovarlari» varag'iga yozilmadi. ${krCodeMsg(e.code)}`, true);
+    else if (e) krErr(e, step === "write");
+  }
+  KR.busy = false; document.querySelectorAll("#krForm [data-save]").forEach(b => { b.disabled = false; });
+}
+async function krDelete(id) {
+  const k = KR.list.find(x => x.id === id);
+  if (!KR.mcp || !k || k.state !== "draft" || KR.busy) return;
+  KR.busy = true;
+  try {
+    await krReload();
+    const ex = KR.list.find(x => x.id === id);
+    if (!ex || ex.state !== "draft") throw null;
+    await KR.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`Kirimlar!C${ex.row}`, values:[["O'chirilgan"]] });
+    if (KR.editId === id) krResetForm();
+    krSay(`Chernovik №${ex.number} o'chirildi.`);
+    try { await krReload(); } catch (e) {}
+  } catch (e) { if (e) krSay(krCodeMsg(e.code) || "O'chirib bo'lmadi, qayta urinib ko'ring."); }
+  KR.busy = false; KR.pendDel = "";
+}
+function krRenderList() {
+  if (!$("krList")) return;
+  const counts = { all:KR.list.length, draft:0, done:0 };
+  KR.list.forEach(k => { counts[k.state === "done" ? "done" : "draft"]++; });
+  $("krFilters").innerHTML = [["all","Barchasi"],["draft","Chernovik"],["done","Omborda"]].map(([k, l]) => `<button data-f="${k}" class="${KR.filter === k ? "on" : ""}">${l} (${counts[k]})</button>`).join("");
+  $("krStatus").textContent = [krDbLine(), KR.msg].filter(Boolean).join(" ");
+  const list = KR.list.filter(k => KR.filter === "all" || (k.state === "done" ? "done" : "draft") === KR.filter);
+  const can = !!KR.mcp;
+  if (!list.length) { $("krList").innerHTML = `<div class="empty-box">${KR.state === "ok" ? "Hozircha kirim yo'q" : ""}</div>`; return; }
+  $("krList").innerHTML = `<table><thead><tr><th>№</th><th>Kelgan sana</th><th>Yetkazib beruvchi</th><th>Tashkilot / ombor</th><th>Tovar</th><th>Summa</th><th>Holat</th><th></th></tr></thead><tbody>`
+    + list.map(k => {
+      const st = k.state === "done" ? "done" : "draft", items = Array.isArray(k.items) ? k.items : [];
+      const qty = items.reduce((s, it) => s + (Number(it.qty) || 0), 0);
+      let act = `<button data-view="${esc(k.id)}">${KR.open === k.id ? "Yopish" : "Ko'rish"}</button>`;
+      if (st === "draft" && can) act += `<button data-edit="${esc(k.id)}">Tahrirlash</button><button data-recv="${esc(k.id)}">Omborga qabul qilish</button><button data-del="${esc(k.id)}">${KR.pendDel === k.id ? "Ha, o'chirish" : "O'chirish"}</button>`;
+      let row = `<tr><td>${esc(k.number)}</td><td>${esc(String(k.date || "").slice(0, 10))}</td><td>${esc(k.supplier)}</td><td>${esc(k.org)} · ${esc(k.warehouse)}</td><td class="num">${qty.toLocaleString("ru-RU")} dona</td><td class="num">${krMoney(Number(k.total) || 0, k.currency)}</td><td><span class="st st-${st}">${KR_ST[st]}</span></td><td class="krAct">${act}</td></tr>`;
+      if (KR.open === k.id) {
+        row += `<tr class="krDet"><td></td><td colspan="7">` + (items.length ? items.map(it => `<div><b>${esc(it.name)}</b> — ${esc(it.qty)} × ${krMoney(Number(it.price) || 0, k.currency)}${it.imeis && it.imeis.length ? `<div class="imeis">IMEI: ${it.imeis.map(esc).join(", ")}</div>` : ""}</div>`).join("") : "Tovar yo'q")
+          + (k.note ? `<div class="tmeta">Izoh: ${esc(k.note)}</div>` : "") + (k.rate ? `<div class="tmeta">Kurs: 1 $ = ${Number(k.rate).toLocaleString("ru-RU")} so'm</div>` : "")
+          + (k.receivedAt ? `<div class="tmeta">Omborga qabul qilingan: ${esc(fmt(k.receivedAt))}</div>` : "") + `</td></tr>`;
+      }
+      return row;
+    }).join("") + `</tbody></table>`;
+}
+// Forma hodisalari
+$("krForm").addEventListener("submit", e => e.preventDefault());
+$("krForm").addEventListener("click", e => { const b = e.target.closest("[data-save]"); if (b) krSave(b.dataset.save); });
+$("krOrg").addEventListener("change", () => krFillWh());
+$("krCur").addEventListener("change", krTotals);
+$("krRate").addEventListener("input", krTotals);
+$("krAdd").addEventListener("click", () => { krItems.push(krBlank()); krRenderRows(); const ins = document.querySelectorAll('#krRows input[data-f="name"]'); if (ins.length) ins[ins.length - 1].focus(); });
+$("krCancel").addEventListener("click", () => { krResetForm(); krFormMsg(""); openForm("kirimApp", false); });
+$("krRows").addEventListener("input", e => {
+  const el = e.target, tr = el.closest("tr[data-i]"); if (!tr || !el.dataset.f) return;
+  const it = krItems[Number(tr.dataset.i)]; if (!it) return;
+  it[el.dataset.f] = el.value;
+  if (el.dataset.f === "imei") { const n = krImeis(el.value).length; if (n) { it.qty = n; tr.querySelector('[data-f="qty"]').value = n; } }
+  krTotals();
+});
+$("krRows").addEventListener("change", e => {
+  const el = e.target; if (el.dataset.f !== "name") return;
+  const tr = el.closest("tr[data-i]"), it = krItems[Number(tr.dataset.i)], v = el.value.trim();
+  const p = krProduct(v) || KR.products.find(x => v && (x.sku === v || x.barcode === v));
+  if (p) { it.name = p.name; el.value = p.name; tr.querySelector('[data-f="imei"]').placeholder = p.marked ? "IMEI majburiy" : "ixtiyoriy"; }
+});
+$("krRows").addEventListener("click", e => {
+  const b = e.target.closest("[data-rm]"); if (!b) return;
+  krItems.splice(Number(b.dataset.rm), 1); krRenderRows();
+});
+$("krFilters").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (b) { KR.filter = b.dataset.f; krRenderList(); } });
+$("krList").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.view) { KR.open = KR.open === b.dataset.view ? "" : b.dataset.view; krRenderList(); }
+  else if (b.dataset.edit) { if (krLoad(b.dataset.edit)) openForm("kirimApp", true); }
+  else if (b.dataset.recv) { if (krLoad(b.dataset.recv)) { openForm("kirimApp", true); krSave("done"); } }
+  else if (b.dataset.del) { if (KR.pendDel === b.dataset.del) krDelete(b.dataset.del); else { KR.pendDel = b.dataset.del; krRenderList(); } }
+});
+// Ma'lumotnomalar (Google Sheets) va kirimlar bazasi
+// Jadval o'nlik sonlarni vergul bilan qaytaradi ("136774,63") — JavaScript uchun nuqtaga o'giriladi
+function krCell(v) { return typeof v === "string" && /^-?\d+,\d+$/.test(v.trim()) ? v.trim().replace(",", ".") : v; }
+function krFix(vals) { return vals.map(r => Array.isArray(r) ? r.map(krCell) : r); }
+function krVals(ev) {
+  const p = ev.result && ev.result.payload;
+  if (typeof p === "string") { try { const j = JSON.parse(p); return Array.isArray(j.values) ? krFix(j.values) : []; } catch (e) { return []; } }
+  return p && Array.isArray(p.values) ? krFix(p.values) : [];
+}
+const KR_SHEETS = {
+  sup:["Postavshiklar!G1:Q1000", vals => {
+    KR.bitoBal = {};
+    vals.slice(1).forEach(r => { const n = String((r || [])[0] || "").trim(); if (n) KR.bitoBal[n.toLowerCase()] = { bal:Number(r[8]) || 0, cur:String(r[10] || "") === "6ac4e2e8c58ec89701f3906c" ? "UZS" : "USD" }; });
+    if (PARTY.supApp) PARTY.supApp.render();
+    KR.bitoSuppliers = [...new Set(vals.slice(1).map(r => String((r || [])[0] || "").trim()).filter(Boolean))].sort();
+    krMergeSuppliers();
+  }],
+  prod:["Tovarlar!F1:Y3000", vals => {
+    KR.bitoProducts = vals.slice(1).filter(r => r && String(r[0] || "").trim()).map(r => ({ name:String(r[0]).trim(), sku:String(r[11] || "").trim(), barcode:String(r[12] || "").trim(), marked:String(r[19] || "").toUpperCase() === "TRUE" }));
+    krMergeProducts();
+  }],
+  wh:["'Ombor qoldiq'!Z1:AB4000", vals => {
+    vals.slice(1).forEach(r => { const o = String((r || [])[0] || "").trim(), w = String((r || [])[2] || "").trim(); if (!o || !w) return; if (!KR.orgs[o]) KR.orgs[o] = []; if (KR.orgs[o].indexOf(w) < 0) KR.orgs[o].push(w); });
+    krFillOrgs();
+  }]
+};
+krResetForm();
+(async () => {
+  let mcp = null;
+  try { mcp = window.claude && window.claude.use ? await window.claude.use("mcp") : null; } catch (e) { mcp = null; }
+  if (!mcp) { KR.state = "off"; krRenderList(); return; }
+  KR.mcp = mcp;
+  try {
+    mcp.watchTool(GS, "get_values", { spreadsheetId:BASE_ID, range:KR_RANGE }, ev => {
+      if (ev.type === "data") { if (!KR.busy) krApplyList(krVals(ev)); return; }
+      const c = ev.error && ev.error.code;
+      if (["needs_reauth", "server_not_connected", "selection_required", "blocked_by_policy", "not_in_manifest", "approval_required"].indexOf(c) >= 0) KR.list = [];
+      if (KR.state !== "ok" || KR.list.length === 0) KR.state = c || "upstream_error";
+      krRenderList();
+    }, { refetchInterval:60000 });
+  } catch (e) {}
+  Object.values(KR_SHEETS).forEach(([range, apply]) => {
+    try { mcp.watchTool(GS, "get_values", { spreadsheetId:SHEET_ID, range }, ev => { if (ev.type === "data") apply(krVals(ev)); }, { refetchInterval:600000 }); } catch (e) {}
+  });
+})();
+
+// ===== Ombor: Tovarlar (o'z tovar ma'lumotnomasi, Google Drive bazasida) =====
+const TV_RANGE = "Tovarlar!A1:K5000", TV_IMG_RANGE = "'Tovar rasmlari'!A1:B5000";
+const TV = { list:[], imgs:{}, state:"loading", busy:false, editId:"", img:"", imgChanged:false, q:"", pendDel:"", msg:"", msgT:null, mcp:null };
+function tvFormMsg(m, bad) { const el = $("tvFormMsg"); el.textContent = m || ""; el.classList.toggle("err", !!bad); }
+function tvSay(m) { TV.msg = m; clearTimeout(TV.msgT); TV.msgT = setTimeout(() => { TV.msg = ""; tvRenderList(); }, 6000); tvRenderList(); }
+function tvParse(vals) {
+  const out = [];
+  (Array.isArray(vals) ? vals : []).forEach((r, i) => {
+    if (!i || !Array.isArray(r) || !r[0] || String(r[7] || "") === "O'chirilgan") return;
+    out.push({ id:String(r[0]), row:i + 1, name:String(r[1] || ""), cat:String(r[2] || ""), barcode:String(r[3] || ""), sku:String(r[4] || ""), marked:String(r[5] || "") === "Ha", orgs:String(r[6] || "").split(",").map(x => x.trim()).filter(Boolean), createdAt:String(r[8] || ""), catId:String(r[10] || "") });
+  });
+  return out.sort((a, b) => a.name.localeCompare(b.name));
+}
+function tvParseImgs(vals) {
+  const m = {};
+  (Array.isArray(vals) ? vals : []).forEach((r, i) => { if (i && Array.isArray(r) && r[0]) m[String(r[0])] = { row:i + 1, data:String(r[1] || "") }; });
+  return m;
+}
+function tvOrgNames() { return Object.keys(KR.orgs).sort(); }
+function tvRenderOrgs(selected) {
+  const sel = selected || tvOrgNames();
+  $("tvOrgs").innerHTML = tvOrgNames().map(o => `<label class="chip"><input type="checkbox" value="${esc(o)}"${sel.indexOf(o) >= 0 ? " checked" : ""}> ${esc(o)}</label>`).join("");
+}
+function tvShowImg() {
+  $("tvImgBox").innerHTML = TV.img ? `<img src="${esc(TV.img)}" alt="">` : "Rasm yo'q";
+  $("tvImgDel").hidden = !TV.img;
+}
+function tvMarkTxt() { $("tvMarkTxt").textContent = $("tvMark").checked ? "Yoqilgan: kirim va sotuvda IMEI so'raladi" : "O'chirilgan"; }
+function tvReset() {
+  TV.editId = ""; TV.img = ""; TV.imgChanged = false;
+  ["tvName", "tvCat", "tvBarcode", "tvSku"].forEach(id => { $(id).value = ""; });
+  $("tvMark").checked = false; tvMarkTxt();
+  tvRenderOrgs(); tvShowImg();
+  $("tvFormTitle").textContent = "Yangi tovar"; $("tvCancel").hidden = true; $("tvFile").value = "";
+}
+function tvLoad(id) {
+  const t = TV.list.find(x => x.id === id); if (!t) return;
+  TV.editId = id; TV.img = (TV.imgs[id] || {}).data || ""; TV.imgChanged = false;
+  ktFillTvSelect();
+  const byPath = !t.catId && t.cat ? KT.list.find(c => ktPath(c.id).toLowerCase() === t.cat.toLowerCase()) : null;
+  $("tvCat").value = ktById(t.catId) ? t.catId : byPath ? byPath.id : "";
+  $("tvName").value = t.name; $("tvBarcode").value = t.barcode; $("tvSku").value = t.sku;
+  $("tvMark").checked = t.marked; tvMarkTxt();
+  tvRenderOrgs(t.orgs); tvShowImg();
+  $("tvFormTitle").textContent = `Tahrirlash: ${t.name}`; $("tvCancel").hidden = false; tvFormMsg("");
+  openForm("tovarApp", true);
+}
+function tvEan() {
+  const used = new Set(TV.list.map(t => t.barcode));
+  for (let n = 0; n < 50; n++) {
+    let d = "200"; for (let i = 0; i < 9; i++) d += Math.floor(Math.random() * 10);
+    let s = 0; for (let i = 0; i < 12; i++) s += Number(d[i]) * (i % 2 ? 3 : 1);
+    const code = d + ((10 - s % 10) % 10);
+    if (!used.has(code)) return code;
+  }
+  return "";
+}
+async function tvImage(file) {
+  if (!file || !/^image\//.test(file.type)) { tvFormMsg("Faqat rasm faylini tanlang.", true); return; }
+  try {
+    const url = URL.createObjectURL(file);
+    const img = await new Promise((ok, bad) => { const im = new Image(); im.onload = () => ok(im); im.onerror = bad; im.src = url; });
+    let size = 320, q = 0.75, data = "";
+    for (let n = 0; n < 8; n++) {
+      const k = Math.min(1, size / Math.max(img.width, img.height));
+      const c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+      const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+      data = c.toDataURL("image/jpeg", q);
+      if (data.length < 40000) break;
+      q = Math.max(0.4, q - 0.1); size = Math.round(size * 0.85);
+    }
+    URL.revokeObjectURL(url);
+    if (data.length >= 49000) { tvFormMsg("Rasmni kichraytirib bo'lmadi, boshqa rasm tanlang.", true); return; }
+    TV.img = data; TV.imgChanged = true; tvShowImg(); tvFormMsg("");
+  } catch (e) { tvFormMsg("Rasmni o'qib bo'lmadi, boshqa rasm tanlang.", true); }
+}
+async function tvReload() {
+  const r = await TV.mcp.callTool(GS, "get_values", { spreadsheetId:BASE_ID, range:TV_RANGE }, { cache:false });
+  TV.list = tvParse(krVals({ result:r })); TV.state = "ok"; tvAfterLoad();
+}
+async function tvReloadImgs() {
+  const r = await TV.mcp.callTool(GS, "get_values", { spreadsheetId:BASE_ID, range:TV_IMG_RANGE }, { cache:false });
+  TV.imgs = tvParseImgs(krVals({ result:r })); tvRenderList();
+}
+function tvAfterLoad() {
+  krMergeProducts(); tvRenderList(); ktRenderList();
+}
+async function tvSave() {
+  if (TV.busy) return;
+  if (!TV.mcp) { tvFormMsg(krDbLine() || "Tsunami bazasi ulanmagan.", true); return; }
+  const name = $("tvName").value.trim(), catId = $("tvCat").value, cat = catId ? ktPath(catId) : "", barcode = $("tvBarcode").value.trim(), sku = $("tvSku").value.trim();
+  const orgs = [...document.querySelectorAll("#tvOrgs input:checked")].map(x => x.value);
+  if (!name) return tvFormMsg("Tovar nomini kiriting.", true);
+  if (!orgs.length) return tvFormMsg("Kamida bitta tashkilotga ruxsat bering.", true);
+  TV.busy = true; $("tvSave").disabled = true;
+  let step = "read";
+  try {
+    await tvReload();
+    const others = TV.list.filter(t => t.id !== TV.editId);
+    const low = s => s.toLowerCase();
+    if (others.some(t => low(t.name) === low(name))) { tvFormMsg(`«${name}» nomli tovar allaqachon bor.`, true); throw null; }
+    if (barcode && others.some(t => t.barcode === barcode)) { tvFormMsg(`Shtrix-kod ${barcode} boshqa tovarda ishlatilgan.`, true); throw null; }
+    if (sku && others.some(t => low(t.sku) === low(sku))) { tvFormMsg(`Artikul ${sku} boshqa tovarda ishlatilgan.`, true); throw null; }
+    const now = new Date().toISOString();
+    let id = TV.editId, created = now;
+    const ex = id ? TV.list.find(t => t.id === id) : null;
+    if (id && !ex) { tvFormMsg("Bu tovar boshqa joyda o'chirilgan.", true); throw null; }
+    if (!id) id = "T" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    else created = ex.createdAt;
+    const row = [krT(id), krT(name), krT(cat), krT(barcode), krT(sku), $("tvMark").checked ? "Ha" : "Yo'q", krT(orgs.join(", ")), "Faol", krT(created), krT(now), krT(catId)];
+    step = "write";
+    if (ex) await TV.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`Tovarlar!A${ex.row}:K${ex.row}`, values:[row] });
+    else await TV.mcp.callTool(GS, "append_values", { spreadsheetId:BASE_ID, range:"Tovarlar!A1", values:[row] });
+    if (TV.imgChanged) {
+      step = "img";
+      const old = TV.imgs[id];
+      if (old) await TV.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`'Tovar rasmlari'!B${old.row}`, values:[[TV.img]] });
+      else if (TV.img) await TV.mcp.callTool(GS, "append_values", { spreadsheetId:BASE_ID, range:"'Tovar rasmlari'!A1", values:[[krT(id), TV.img]] });
+      if (TV.img) TV.imgs[id] = { row:old ? old.row : 0, data:TV.img }; else delete TV.imgs[id];
+    }
+    tvSay(ex ? `«${name}» saqlandi.` : `«${name}» tovarlar ro'yxatiga qo'shildi.`);
+    tvReset(); tvFormMsg(""); openForm("tovarApp", false);
+    try { await tvReload(); if (step === "img") await tvReloadImgs(); } catch (e) {}
+  } catch (e) {
+    if (e && step === "img") tvFormMsg("Tovar saqlandi, lekin rasm yozilmadi. " + krCodeMsg(e.code), true);
+    else if (e) { const m = krCodeMsg(e.code); tvFormMsg(m || (step === "write" ? "Javob kelmadi: tovar saqlangan bo'lishi ham mumkin. Ro'yxatni tekshiring." : "Bazaga ulanib bo'lmadi, qayta urinib ko'ring."), true); }
+  }
+  TV.busy = false; $("tvSave").disabled = false;
+}
+async function tvDelete(id) {
+  if (TV.busy || !TV.mcp) return;
+  TV.busy = true;
+  try {
+    await tvReload();
+    const t = TV.list.find(x => x.id === id); if (!t) throw null;
+    await TV.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`Tovarlar!H${t.row}`, values:[["O'chirilgan"]] });
+    if (TV.editId === id) tvReset();
+    tvSay(`«${t.name}» o'chirildi.`);
+    try { await tvReload(); } catch (e) {}
+  } catch (e) { if (e) tvSay(krCodeMsg(e.code) || "O'chirib bo'lmadi, qayta urinib ko'ring."); }
+  TV.busy = false; TV.pendDel = "";
+}
+function tvRenderList() {
+  if (!$("tvList")) return;
+  const line = TV.state === "ok" ? "" : TV.state === "loading" ? "Tsunami bazasidan yuklanmoqda…" : TV.state === "off" ? "Tovarlar bu ko'rinishda ishlamaydi: sahifani claude.ai'da, tizimga kirgan holda oching." : (krCodeMsg(TV.state) || "Tsunami bazasiga hozircha ulanib bo'lmadi, birozdan keyin o'zi qayta urinadi.");
+  const q = TV.q.trim().toLowerCase();
+  const catOf = t => (t.catId && ktPath(t.catId)) || t.cat;
+  const list = TV.list.filter(t => !q || [t.name, catOf(t), t.barcode, t.sku].some(x => x.toLowerCase().indexOf(q) >= 0));
+  $("tvStatus").textContent = [line, TV.msg, TV.state === "ok" ? `Jami: ${TV.list.length} ta tovar${q ? `, topildi: ${list.length}` : ""}` : ""].filter(Boolean).join(" · ");
+  if (!list.length) { $("tvList").innerHTML = `<div class="empty-box">${TV.state === "ok" ? (q ? "Hech narsa topilmadi" : "Hozircha tovar yo'q: yuqoridagi formadan qo'shing") : ""}</div>`; return; }
+  const can = !!TV.mcp, shown = list.slice(0, 300);
+  $("tvList").innerHTML = `<table><thead><tr><th></th><th>Nomi</th><th>Kategoriya</th><th>Shtrix-kod</th><th>Artikul</th><th>Markirovka</th><th>Tashkilotlar</th><th></th></tr></thead><tbody>`
+    + shown.map(t => {
+      const im = (TV.imgs[t.id] || {}).data;
+      return `<tr><td class="thumb">${im ? `<img src="${esc(im)}" alt="">` : `<span class="noimg"></span>`}</td><td><b>${esc(t.name)}</b></td><td>${esc(catOf(t)) || "—"}</td><td class="mono">${esc(t.barcode) || "—"}</td><td class="mono">${esc(t.sku) || "—"}</td>`
+        + `<td>${t.marked ? `<span class="st st-done">Yoqilgan</span>` : `<span class="st st-draft">O'chirilgan</span>`}</td><td class="small">${t.orgs.map(esc).join("<br>")}</td>`
+        + `<td class="krAct">${can ? `<button data-tvedit="${esc(t.id)}">Tahrirlash</button><button data-tvdel="${esc(t.id)}">${TV.pendDel === t.id ? "Ha, o'chirish" : "O'chirish"}</button>` : ""}</td></tr>`;
+    }).join("") + `</tbody></table>` + (list.length > shown.length ? `<div class="tmeta">Birinchi 300 tasi ko'rsatildi, qolganini qidiruv orqali toping.</div>` : "");
+}
+// Kirim formasidagi tovarlar ro'yxati: avval Tsunami tovarlari, keyin Bito'dan kelganlari
+function krMergeProducts() {
+  const own = TV.list.map(t => ({ name:t.name, sku:t.sku, barcode:t.barcode, marked:t.marked, own:true }));
+  const names = new Set(own.map(p => p.name.toLowerCase()));
+  KR.products = own.concat((KR.bitoProducts || []).filter(p => !names.has(p.name.toLowerCase())));
+  $("krProducts").innerHTML = KR.products.map(p => `<option value="${esc(p.name)}">${esc(p.sku)}</option>`).join("");
+}
+$("tvForm").addEventListener("submit", e => e.preventDefault());
+$("tvSave").addEventListener("click", tvSave);
+$("tvCancel").addEventListener("click", () => { tvReset(); tvFormMsg(""); openForm("tovarApp", false); });
+$("tvMark").addEventListener("change", tvMarkTxt);
+$("tvGen").addEventListener("click", () => { $("tvBarcode").value = tvEan(); });
+$("tvFile").addEventListener("change", e => tvImage(e.target.files && e.target.files[0]));
+$("tvImgDel").addEventListener("click", () => { TV.img = ""; TV.imgChanged = true; $("tvFile").value = ""; tvShowImg(); });
+$("tvSearch").addEventListener("input", e => { TV.q = e.target.value; tvRenderList(); });
+$("tvList").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.tvedit) tvLoad(b.dataset.tvedit);
+  else if (b.dataset.tvdel) { if (TV.pendDel === b.dataset.tvdel) tvDelete(b.dataset.tvdel); else { TV.pendDel = b.dataset.tvdel; tvRenderList(); } }
+});
+tvReset();
+(async () => {
+  let mcp = null;
+  try { mcp = window.claude && window.claude.use ? await window.claude.use("mcp") : null; } catch (e) { mcp = null; }
+  if (!mcp) { TV.state = "off"; tvRenderList(); return; }
+  TV.mcp = mcp;
+  try {
+    mcp.watchTool(GS, "get_values", { spreadsheetId:BASE_ID, range:TV_RANGE }, ev => {
+      if (ev.type === "data") { if (!TV.busy) { TV.list = tvParse(krVals(ev)); TV.state = "ok"; tvAfterLoad(); } return; }
+      const c = ev.error && ev.error.code;
+      if (TV.state !== "ok" || !TV.list.length) TV.state = c || "upstream_error";
+      tvRenderList();
+    }, { refetchInterval:120000 });
+    mcp.watchTool(GS, "get_values", { spreadsheetId:BASE_ID, range:TV_IMG_RANGE }, ev => { if (ev.type === "data") { TV.imgs = tvParseImgs(krVals(ev)); tvRenderList(); } });
+  } catch (e) {}
+})();
+
+// ===== Ombor: Kategoriyalar (ichma-ich daraxt, Google Drive bazasida) =====
+const KT_RANGE = "Kategoriyalar!A1:G3000";
+const KT = { list:[], state:"loading", busy:false, editId:"", pendDel:"", msg:"", msgT:null, mcp:null };
+function ktFormMsg(m, bad) { const el = $("ktFormMsg"); el.textContent = m || ""; el.classList.toggle("err", !!bad); }
+function ktSay(m) { KT.msg = m; clearTimeout(KT.msgT); KT.msgT = setTimeout(() => { KT.msg = ""; ktRenderList(); }, 6000); ktRenderList(); }
+function ktParse(vals) {
+  const out = [];
+  (Array.isArray(vals) ? vals : []).forEach((r, i) => {
+    if (!i || !Array.isArray(r) || !r[0] || String(r[4] || "") === "O'chirilgan") return;
+    out.push({ id:String(r[0]), row:i + 1, name:String(r[1] || ""), parent:String(r[2] || ""), createdAt:String(r[5] || "") });
+  });
+  return out;
+}
+function ktById(id) { return id ? KT.list.find(c => c.id === id) : null; }
+function ktKids(id) { return KT.list.filter(c => c.parent === id).sort((a, b) => a.name.localeCompare(b.name)); }
+function ktRoots() { return KT.list.filter(c => !c.parent || !ktById(c.parent)).sort((a, b) => a.name.localeCompare(b.name)); }
+function ktPath(id) {
+  const parts = [], seen = new Set();
+  let c = ktById(id);
+  while (c && !seen.has(c.id)) { seen.add(c.id); parts.unshift(c.name); c = ktById(c.parent); }
+  return parts.join(" / ");
+}
+function ktTree() {
+  const out = [], seen = new Set();
+  const walk = (c, d) => { if (seen.has(c.id)) return; seen.add(c.id); out.push({ c, d }); ktKids(c.id).forEach(k => walk(k, d + 1)); };
+  ktRoots().forEach(c => walk(c, 0));
+  return out;
+}
+function ktSubtree(id) { const s = new Set([id]); let grew = true; while (grew) { grew = false; KT.list.forEach(c => { if (s.has(c.parent) && !s.has(c.id)) { s.add(c.id); grew = true; } }); } return s; }
+function ktOptions(selected, exclude, rootLabel) {
+  const ban = exclude ? ktSubtree(exclude) : new Set();
+  return `<option value="">${rootLabel}</option>` + ktTree().filter(x => !ban.has(x.c.id)).map(x => `<option value="${esc(x.c.id)}"${x.c.id === selected ? " selected" : ""}>${"   ".repeat(x.d)}${x.d ? "└ " : ""}${esc(x.c.name)}</option>`).join("");
+}
+function ktFillParent(sel) { $("ktParent").innerHTML = ktOptions(sel, KT.editId, "— Asosiy (yuqori daraja) —"); }
+function ktFillTvSelect() {
+  const s = $("tvCat"), keep = s.value;
+  s.innerHTML = ktOptions(keep, "", "— Kategoriyasiz —");
+  s.value = ktById(keep) ? keep : "";
+}
+function ktReset(parent) {
+  KT.editId = ""; $("ktName").value = ""; ktFillParent(parent || "");
+  $("ktFormTitle").textContent = parent ? `Ichki kategoriya: ${ktPath(parent)}` : "Yangi kategoriya"; $("ktCancel").hidden = !parent;
+}
+function ktLoad(id) {
+  const c = ktById(id); if (!c) return;
+  KT.editId = id; $("ktName").value = c.name; ktFillParent(c.parent);
+  $("ktFormTitle").textContent = `Tahrirlash: ${ktPath(id)}`; $("ktCancel").hidden = false; ktFormMsg("");
+  openForm("katApp", true);
+}
+function ktAfterLoad() { ktFillParent($("ktParent").value); ktFillTvSelect(); ktRenderList(); tvRenderList(); }
+async function ktReload() {
+  const r = await KT.mcp.callTool(GS, "get_values", { spreadsheetId:BASE_ID, range:KT_RANGE }, { cache:false });
+  KT.list = ktParse(krVals({ result:r })); KT.state = "ok"; ktAfterLoad();
+}
+async function ktSave() {
+  if (KT.busy) return;
+  if (!KT.mcp) { ktFormMsg(krDbLine() || "Tsunami bazasi ulanmagan.", true); return; }
+  const name = $("ktName").value.trim(), parent = $("ktParent").value;
+  if (!name) return ktFormMsg("Kategoriya nomini kiriting.", true);
+  if (name.indexOf("/") >= 0) return ktFormMsg("Nomda «/» belgisi bo'lmasin.", true);
+  KT.busy = true; $("ktSave").disabled = true;
+  let step = "read";
+  try {
+    await ktReload();
+    const ex = KT.editId ? ktById(KT.editId) : null;
+    if (KT.editId && !ex) { ktFormMsg("Bu kategoriya boshqa joyda o'chirilgan.", true); throw null; }
+    if (parent && !ktById(parent)) { ktFormMsg("Tanlangan ota kategoriya o'chirilgan.", true); throw null; }
+    if (ex && ktSubtree(ex.id).has(parent)) { ktFormMsg("Kategoriyani o'zining ichiga joylab bo'lmaydi.", true); throw null; }
+    if (KT.list.some(c => c.id !== KT.editId && (c.parent || "") === parent && c.name.toLowerCase() === name.toLowerCase())) { ktFormMsg(`«${name}» bu darajada allaqachon bor.`, true); throw null; }
+    const now = new Date().toISOString();
+    const id = ex ? ex.id : "C" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    if (ex) { ex.name = name; ex.parent = parent; } else KT.list.push({ id, name, parent, row:0, createdAt:now });
+    const row = [krT(id), krT(name), krT(parent), krT(ktPath(id)), "Faol", krT(ex ? ex.createdAt : now), krT(now)];
+    step = "write";
+    if (ex) await KT.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`Kategoriyalar!A${ex.row}:G${ex.row}`, values:[row] });
+    else await KT.mcp.callTool(GS, "append_values", { spreadsheetId:BASE_ID, range:"Kategoriyalar!A1", values:[row] });
+    if (ex) {
+      step = "paths";
+      for (const d of ktSubtree(id)) { const c = ktById(d); if (c && c.id !== id && c.row) await KT.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`Kategoriyalar!D${c.row}`, values:[[krT(ktPath(c.id))]] }); }
+    }
+    ktSay(ex ? `«${ktPath(id)}» saqlandi.` : `«${ktPath(id)}» qo'shildi.`);
+    ktReset(); ktFormMsg(""); openForm("katApp", false);
+    try { await ktReload(); } catch (e) {}
+  } catch (e) {
+    if (e && step === "paths") ktFormMsg("Kategoriya saqlandi, lekin ichki kategoriyalarning jadvaldagi «To'liq yo'l» ustuni to'liq yangilanmadi.", true);
+    else if (e) { const m = krCodeMsg(e.code); ktFormMsg(m || (step === "write" ? "Javob kelmadi: kategoriya saqlangan bo'lishi ham mumkin. Ro'yxatni tekshiring." : "Bazaga ulanib bo'lmadi, qayta urinib ko'ring."), true); }
+    try { await ktReload(); } catch (x) {}
+  }
+  KT.busy = false; $("ktSave").disabled = false;
+}
+function ktCount(id) { const s = ktSubtree(id); return TV.list.filter(t => t.catId && s.has(t.catId)).length; }
+async function ktDelete(id) {
+  if (KT.busy || !KT.mcp) return;
+  KT.busy = true;
+  try {
+    await ktReload();
+    const c = ktById(id); if (!c) throw null;
+    if (ktKids(id).length) { ktSay(`«${c.name}» ichida kategoriyalar bor: avval ularni o'chiring yoki boshqa joyga ko'chiring.`); throw null; }
+    const n = TV.list.filter(t => t.catId === id).length;
+    if (n) { ktSay(`«${c.name}» kategoriyasida ${n} ta tovar bor: avval ularning kategoriyasini o'zgartiring.`); throw null; }
+    await KT.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`Kategoriyalar!E${c.row}`, values:[["O'chirilgan"]] });
+    if (KT.editId === id) ktReset();
+    ktSay(`«${c.name}» o'chirildi.`);
+    try { await ktReload(); } catch (e) {}
+  } catch (e) { if (e) ktSay(krCodeMsg(e.code) || "O'chirib bo'lmadi, qayta urinib ko'ring."); }
+  KT.busy = false; KT.pendDel = "";
+}
+function ktRenderList() {
+  if (!$("ktList")) return;
+  const line = KT.state === "ok" ? "" : KT.state === "loading" ? "Tsunami bazasidan yuklanmoqda…" : KT.state === "off" ? "Kategoriyalar bu ko'rinishda ishlamaydi: sahifani claude.ai'da, tizimga kirgan holda oching." : (krCodeMsg(KT.state) || "Tsunami bazasiga hozircha ulanib bo'lmadi, birozdan keyin o'zi qayta urinadi.");
+  $("ktStatus").textContent = [line, KT.msg, KT.state === "ok" ? `Jami: ${KT.list.length} ta kategoriya` : ""].filter(Boolean).join(" · ");
+  const tree = ktTree();
+  if (!tree.length) { $("ktList").innerHTML = `<div class="empty-box">${KT.state === "ok" ? "Hozircha kategoriya yo'q: yuqoridagi formadan qo'shing" : ""}</div>`; return; }
+  const can = !!KT.mcp;
+  $("ktList").innerHTML = `<table><thead><tr><th>Kategoriya</th><th>Ichki kategoriyalar</th><th>Tovarlar</th><th></th></tr></thead><tbody>`
+    + tree.map(({ c, d }) => {
+      const kids = ktKids(c.id).length;
+      return `<tr><td><span class="ktname" style="padding-left:${d * 22}px">${d ? `<span class="ktbranch">└</span>` : ""}${kids ? "📂" : "📁"} <b>${esc(c.name)}</b></span></td><td class="num">${kids || "—"}</td><td class="num">${ktCount(c.id) || "—"}</td>`
+        + `<td class="krAct">${can ? `<button data-ktadd="${esc(c.id)}">+ Ichiga qo'shish</button><button data-ktedit="${esc(c.id)}">Tahrirlash</button><button data-ktdel="${esc(c.id)}">${KT.pendDel === c.id ? "Ha, o'chirish" : "O'chirish"}</button>` : ""}</td></tr>`;
+    }).join("") + `</tbody></table>`;
+}
+$("ktForm").addEventListener("submit", e => { e.preventDefault(); ktSave(); });
+$("ktSave").addEventListener("click", ktSave);
+$("ktCancel").addEventListener("click", () => { ktReset(); ktFormMsg(""); openForm("katApp", false); });
+$("ktList").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.ktadd) { ktReset(b.dataset.ktadd); ktFormMsg(""); openForm("katApp", true); }
+  else if (b.dataset.ktedit) ktLoad(b.dataset.ktedit);
+  else if (b.dataset.ktdel) { if (KT.pendDel === b.dataset.ktdel) ktDelete(b.dataset.ktdel); else { KT.pendDel = b.dataset.ktdel; ktRenderList(); } }
+});
+ktReset();
+(async () => {
+  let mcp = null;
+  try { mcp = window.claude && window.claude.use ? await window.claude.use("mcp") : null; } catch (e) { mcp = null; }
+  if (!mcp) { KT.state = "off"; ktRenderList(); return; }
+  KT.mcp = mcp;
+  try {
+    mcp.watchTool(GS, "get_values", { spreadsheetId:BASE_ID, range:KT_RANGE }, ev => {
+      if (ev.type === "data") { if (!KT.busy) { KT.list = ktParse(krVals(ev)); KT.state = "ok"; ktAfterLoad(); } return; }
+      const c = ev.error && ev.error.code;
+      if (KT.state !== "ok" || !KT.list.length) KT.state = c || "upstream_error";
+      ktRenderList();
+    }, { refetchInterval:120000 });
+  } catch (e) {}
+})();
+
+// ===== Yaratish formalari: bo'limga kirganda faqat tarix, "Yangi" bosilganda forma ochiladi =====
+const FORM_FOCUS = { kirimApp:"krSupplier", tovarApp:"tvName", katApp:"ktName", supApp:"supApp_name", cliApp:"cliApp_name", sotuvApp:"slClient", qaytApp:"qtSaleQ", payApp:"pyClient", bolApp:"blSale" };
+function openForm(app, on) {
+  const el = $(app); if (!el) return;
+  el.classList.toggle("fopen", on);
+  if (on) { el.scrollIntoView({ behavior:"smooth" }); const f = $(FORM_FOCUS[app]); if (f) setTimeout(() => f.focus(), 50); }
+}
+document.addEventListener("click", e => {
+  const o = e.target.closest("[data-open]");
+  if (o) {
+    const a = o.dataset.open;
+    if (a === "kirimApp") { krResetForm(); krFormMsg(""); } else if (a === "tovarApp") { tvReset(); tvFormMsg(""); } else if (a === "katApp") { ktReset(); ktFormMsg(""); }
+    else if (PARTY[a]) PARTY[a].reset();
+    else if (a === "sotuvApp") { slReset(); slClientsFill(); }
+    else if (a === "qaytApp" && window.qtReset) qtReset();
+    openForm(a, true); return;
+  }
+  const c = e.target.closest("[data-close]");
+  if (c) {
+    const a = c.dataset.close;
+    if (a === "kirimApp") { krResetForm(); krFormMsg(""); } else if (a === "tovarApp") { tvReset(); tvFormMsg(""); } else if (a === "katApp") { ktReset(); ktFormMsg(""); }
+    else if (PARTY[a]) PARTY[a].reset();
+    else if (a === "sotuvApp") slReset();
+    openForm(a, false);
+  }
+});
+
+// ===== Sotuv: Sotuvlar (yaratish va ro'yxat, Google Drive bazasida) =====
+const SL_RANGE = "Sotuvlar!A1:P5000";
+const SL_PAY = ["Naqd", "Karta", "Terminal", "O'tkazma", "Nasiya"];
+const SL_WALKIN = "Umumiy mijoz";
+const SL = { list:[], state:"loading", busy:false, filter:"all", q:"", open:"", pendCancel:"", msg:"", msgT:null, mcp:null, items:[] };
+function slBlank() { return { name:"", qty:1, price:"", imei:"" }; }
+function slFmsg(m, bad) { const x = $("slFmsg"); x.textContent = m || ""; x.classList.toggle("err", !!bad); }
+function slSay(m) { SL.msg = m; clearTimeout(SL.msgT); SL.msgT = setTimeout(() => { SL.msg = ""; slRender(); }, 6000); slRender(); }
+(function slBuild() {
+  const el = document.createElement("div");
+  el.id = "sotuvApp";
+  el.innerHTML = `<div class="panel fpanel"><div class="thead"><h3>Yangi sotuv</h3><button type="button" class="closebtn" data-close="sotuvApp">Yopish ✕</button></div>
+    <form id="slForm" class="kform">
+      <div class="kgrid">
+        <label>Sotuv kuni<input type="date" id="slDate" required></label>
+        <label>Mijoz<input id="slClient" list="slClients" maxlength="160" placeholder="Bo'sh qolsa: ${SL_WALKIN}"></label>
+        <label>Valyuta<select id="slCur"><option value="UZS">UZS (so'm)</option><option value="USD">USD ($)</option></select></label>
+        <label>Kurs (1 $ = so'm)<input type="number" id="slRate" min="0" step="1" placeholder="ixtiyoriy"></label>
+        <label>Sotuvchi<input id="slSeller" list="slSellers" maxlength="80" placeholder="ixtiyoriy"></label>
+      </div>
+      <label class="full">Izoh<input id="slNote" maxlength="300" placeholder="ixtiyoriy"></label>
+      <div class="ktable"><table><thead><tr><th>#</th><th>Tovar</th><th>Soni</th><th>Narx (1 dona)</th><th>IMEI (har biri yangi qatorda)</th><th>Summa</th><th></th></tr></thead><tbody id="slRows"></tbody></table></div>
+      <button type="button" id="slAdd" class="lnk">+ Qator qo'shish</button>
+      <div class="ktotal" id="slTotal"></div>
+      <div class="kgrid slpay">
+        <label>To'langan summa<span class="inrow"><input type="number" id="slPaid" min="0" step="any" placeholder="0"><button type="button" id="slFull" class="mini">To'liq</button></span></label>
+        <label>To'lov turi<select id="slPayType">${SL_PAY.map(p => `<option>${p}</option>`).join("")}</select></label>
+        <div class="sldebt" id="slDebt"></div>
+      </div>
+      <div class="kbtns"><button type="button" class="pri" id="slSave">Sotuvni saqlash</button></div>
+      <div class="status" id="slFmsg"></div>
+    </form></div>
+    <div class="panel"><div class="thead"><h3>Sotuvlar</h3><div class="hbtns"><input class="search" id="slQ" placeholder="Qidirish: mijoz, tovar, IMEI"><div class="filters" id="slFilters"></div><button type="button" class="openbtn" data-open="sotuvApp">+ Yangi sotuv</button></div></div>
+    <div class="status" id="slStatus"></div><div id="slList"></div></div>`;
+  $("kirimApp").parentNode.insertBefore(el, $("kirimApp"));
+  const dl = document.createElement("div");
+  dl.innerHTML = `<datalist id="slClients"></datalist><datalist id="slSellers"></datalist>`;
+  document.body.appendChild(dl);
+})();
+function slTotal() { return SL.items.reduce((s, it) => s + (Number(it.qty) || 0) * (Number(it.price) || 0), 0); }
+function slTotals() {
+  const cur = $("slCur").value, tot = slTotal();
+  SL.items.forEach((it, i) => { const c = document.querySelector(`#slRows tr[data-i="${i}"] [data-sum]`); if (c) c.textContent = krMoney((Number(it.qty) || 0) * (Number(it.price) || 0), cur); });
+  const qty = SL.items.reduce((s, it) => s + (Number(it.qty) || 0), 0), rate = Number($("slRate").value) || 0;
+  $("slTotal").textContent = `Jami: ${qty.toLocaleString("ru-RU")} dona · ${krMoney(tot, cur)}` + (rate && cur === "USD" ? ` ≈ ${krMoney(tot * rate, "UZS")}` : "");
+  const paid = Number($("slPaid").value) || 0, debt = Math.max(0, tot - paid);
+  $("slDebt").innerHTML = tot ? (debt > 0.005 ? `<span class="balpos">Qarzga: ${krMoney(debt, cur)}</span>` : paid - tot > 0.005 ? `<span class="balpos">To'langan summa jamidan ko'p</span>` : `<span class="balneg">To'liq to'langan</span>`) : "";
+}
+function slRows() {
+  if (!SL.items.length) SL.items = [slBlank()];
+  $("slRows").innerHTML = SL.items.map((it, i) => {
+    const p = krProduct(it.name);
+    return `<tr data-i="${i}"><td>${i + 1}</td><td><input data-f="name" list="krProducts" value="${esc(it.name)}" placeholder="Tovar nomi, SKU yoki shtrix-kod" maxlength="160"></td>`
+      + `<td><input data-f="qty" class="sm" type="number" min="1" step="1" value="${esc(it.qty)}"></td><td><input data-f="price" class="sm" type="number" min="0" step="any" value="${esc(it.price)}" placeholder="0"></td>`
+      + `<td><textarea data-f="imei" rows="1" placeholder="${p && p.marked ? "IMEI majburiy" : "ixtiyoriy"}">${esc(it.imei)}</textarea></td><td class="num" data-sum></td><td><button type="button" data-rm="${i}" title="Qatorni o'chirish">×</button></td></tr>`;
+  }).join("");
+  slTotals();
+}
+function slReset() {
+  $("slDate").value = new Date().toLocaleDateString("en-CA");
+  ["slClient", "slRate", "slSeller", "slNote", "slPaid"].forEach(id => { $(id).value = ""; });
+  $("slCur").value = "UZS"; $("slPayType").value = SL_PAY[0];
+  SL.items = [slBlank()]; slRows(); slFmsg("");
+}
+function slParse(vals) {
+  const out = [];
+  (Array.isArray(vals) ? vals : []).forEach((r, i) => {
+    if (!i || !Array.isArray(r) || !r[0]) return;
+    let items = []; try { items = JSON.parse(r[13] || "[]"); } catch (e) { items = []; }
+    out.push({ id:String(r[0]), row:i + 1, number:Number(r[1]) || 0, cancelled:String(r[2] || "") === "Bekor qilingan", date:String(r[3] || ""), client:String(r[4] || ""), currency:String(r[5] || "UZS"), rate:Number(r[6]) || 0, total:Number(r[7]) || 0, paid:Number(r[8]) || 0, debt:Number(r[9]) || 0, payType:String(r[10] || ""), seller:String(r[11] || ""), note:String(r[12] || ""), items:Array.isArray(items) ? items : [], createdAt:String(r[14] || ""), cancelledAt:String(r[15] || "") });
+  });
+  return out.sort((a, b) => b.number - a.number);
+}
+function slApply(vals) { SL.list = slParse(vals); SL.state = "ok"; slRender(); if (PARTY.cliApp) PARTY.cliApp.render(); }
+async function slReload() { const r = await SL.mcp.callTool(GS, "get_values", { spreadsheetId:BASE_ID, range:SL_RANGE }, { cache:false }); slApply(krVals({ result:r })); }
+function slClientsFill() {
+  const names = PARTY.cliApp ? PARTY.cliApp.list.map(c => c.name) : [];
+  $("slClients").innerHTML = names.map(n => `<option value="${esc(n)}">`).join("");
+  const sellers = rowsOf(SALES.plan).map(r => String(r[0] || "").trim()).filter(n => n && n.indexOf("(bo'sh)") < 0);
+  $("slSellers").innerHTML = sellers.map(n => `<option value="${esc(n)}">`).join("");
+}
+async function slSave() {
+  if (SL.busy) return;
+  if (!SL.mcp) return slFmsg(krDbLine() || "Tsunami bazasi ulanmagan.", true);
+  const date = $("slDate").value, cur = $("slCur").value, rate = Number($("slRate").value) || 0;
+  let client = $("slClient").value.trim();
+  const seller = $("slSeller").value.trim(), note = $("slNote").value.trim(), payType = $("slPayType").value;
+  if (!date) return slFmsg("Sotuv kunini kiriting.", true);
+  const rows = SL.items.filter(it => String(it.name).trim());
+  if (!rows.length) return slFmsg("Kamida bitta tovar kiriting.", true);
+  const items = [], seen = new Set();
+  for (const it of rows) {
+    const name = String(it.name).trim(), qty = Number(it.qty), imeis = krImeis(it.imei);
+    if (!(qty > 0) || Math.floor(qty) !== qty) return slFmsg(`«${name}»: sonini to'g'ri kiriting.`, true);
+    if (String(it.price).trim() === "" || !(Number(it.price) >= 0)) return slFmsg(`«${name}»: narxini kiriting.`, true);
+    if (imeis.length && imeis.length !== qty) return slFmsg(`«${name}»: IMEI soni (${imeis.length}) tovar soniga (${qty}) teng emas.`, true);
+    const p = krProduct(name);
+    if (p && p.marked && !imeis.length) return slFmsg(`«${name}» IMEI bilan hisobga olinadi: IMEI kiriting.`, true);
+    for (const m of imeis) { if (seen.has(m)) return slFmsg(`IMEI ${m} ikki marta kiritilgan.`, true); seen.add(m); }
+    items.push(Object.assign({ name, qty, price:Number(it.price), imeis, sku:p ? p.sku : "" }, it.disc ? { disc:it.disc } : {}));
+  }
+  const total = items.reduce((s, it) => s + it.qty * it.price, 0);
+  const paidRaw = $("slPaid").value.trim(), paid = paidRaw === "" ? 0 : Number(paidRaw);
+  if (!(paid >= 0)) return slFmsg("To'langan summani to'g'ri kiriting.", true);
+  if (paid - total > 0.005) return slFmsg("To'langan summa jami summadan ko'p bo'lmasin.", true);
+  const debt = Math.round((total - paid) * 100) / 100;
+  const known = PARTY.cliApp ? PARTY.cliApp.list.find(c => c.name.toLowerCase() === client.toLowerCase()) : null;
+  if (known) client = known.name;
+  if (!client) client = SL_WALKIN;
+  if (debt > 0.005 && !known) return slFmsg(client === SL_WALKIN ? "Qarzga sotish uchun mijozni tanlang." : `Qarzga sotish uchun «${client}» ni avval CRM → Mijozlar bo'limida yarating.`, true);
+  SL.busy = true; $("slSave").disabled = true;
+  let step = "read";
+  try {
+    await slReload();
+    try { if (QT && QT.mcp) await qtReload(); } catch (e) {}
+    const back = qtImeiMap(), cnt = {}, lastNo = {};
+    for (const s of SL.list) {
+      if (s.cancelled) continue;
+      for (const it of s.items) for (const m of it.imeis || []) if (seen.has(m)) { cnt[m] = (cnt[m] || 0) + 1; lastNo[m] = s.number; }
+    }
+    for (const m of seen) {
+      if ((cnt[m] || 0) - (back[m] ? back[m].n : 0) > 0) { slFmsg(`IMEI ${m} allaqachon №${lastNo[m]} sotuvda sotilgan.`, true); throw null; }
+      if (back[m] && back[m].dest === "brak") { slFmsg(`IMEI ${m} qaytarishda «brak» deb belgilangan, uni sotib bo'lmaydi.`, true); throw null; }
+    }
+    const now = new Date().toISOString(), id = "D" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const number = SL.list.reduce((m, s) => Math.max(m, s.number), 0) + 1;
+    const row = [krT(id), number, "Yakunlangan", krT(date), krT(client), cur, rate || "", total, paid, debt, paid > 0 ? payType : (debt > 0 ? "Qarzga" : ""), krT(seller), krT(note), krT(JSON.stringify(items)), krT(now), ""];
+    step = "write";
+    await SL.mcp.callTool(GS, "append_values", { spreadsheetId:BASE_ID, range:"Sotuvlar!A1", values:[row] });
+    step = "items";
+    const irows = [];
+    items.forEach(it => {
+      const base = [krT(id), number, krT(date), krT(client), krT(it.name), krT(it.sku)];
+      if (it.imeis.length) it.imeis.forEach(m => irows.push(base.concat([1, it.price, cur, it.price, krT(m)])));
+      else irows.push(base.concat([it.qty, it.price, cur, it.qty * it.price, ""]));
+    });
+    await SL.mcp.callTool(GS, "append_values", { spreadsheetId:BASE_ID, range:"'Sotuv tovarlari'!A1", values:irows });
+    slSay(`Sotuv №${number} saqlandi: ${krMoney(total, cur)}${debt > 0.005 ? `, qarzga ${krMoney(debt, cur)}` : ""}.`);
+    slReset(); openForm("sotuvApp", false);
+    try { await slReload(); } catch (e) {}
+  } catch (e) {
+    if (e && step === "items") slFmsg("Sotuv saqlandi, lekin tovar qatorlari «Sotuv tovarlari» varag'iga yozilmadi. " + krCodeMsg(e.code), true);
+    else if (e) { const m = krCodeMsg(e.code); slFmsg(m || (step === "write" ? "Javob kelmadi: sotuv saqlangan bo'lishi ham mumkin. Ro'yxatni tekshiring." : "Bazaga ulanib bo'lmadi, qayta urinib ko'ring."), true); }
+  }
+  SL.busy = false; $("slSave").disabled = false;
+}
+async function slCancel(id) {
+  if (SL.busy || !SL.mcp) return;
+  SL.busy = true;
+  try {
+    await slReload();
+    const s = SL.list.find(x => x.id === id); if (!s || s.cancelled) throw null;
+    if (qtActive().some(r => r.saleId === s.id)) { slSay(`Sotuv №${s.number} bo'yicha qaytarish bor: avval Qaytarish bo'limida uni bekor qiling.`); throw null; }
+    await SL.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`Sotuvlar!C${s.row}`, values:[["Bekor qilingan"]] });
+    await SL.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`Sotuvlar!P${s.row}`, values:[[krT(new Date().toISOString())]] });
+    slSay(`Sotuv №${s.number} bekor qilindi.`);
+    try { await slReload(); } catch (e) {}
+  } catch (e) { if (e) slSay(krCodeMsg(e.code) || "Bekor qilib bo'lmadi, qayta urinib ko'ring."); }
+  SL.busy = false; SL.pendCancel = "";
+}
+function slRender() {
+  if (!$("slList")) return;
+  const line = SL.state === "ok" ? "" : SL.state === "loading" ? "Tsunami bazasidan yuklanmoqda…" : SL.state === "off" ? "Sotuvlar bu ko'rinishda ishlamaydi: sahifani claude.ai'da, tizimga kirgan holda oching." : (krCodeMsg(SL.state) || "Tsunami bazasiga hozircha ulanib bo'lmadi, birozdan keyin o'zi qayta urinadi.");
+  const today = new Date().toLocaleDateString("en-CA");
+  const active = SL.list.filter(s => !s.cancelled);
+  const counts = { all:SL.list.length, today:active.filter(s => s.date.slice(0, 10) === today).length, debt:active.filter(s => s.debt > 0.005).length, cancelled:SL.list.length - active.length };
+  $("slFilters").innerHTML = [["all", "Barchasi"], ["today", "Bugun"], ["debt", "Qarzga"], ["cancelled", "Bekor qilingan"]].map(([k, l]) => `<button data-f="${k}" class="${SL.filter === k ? "on" : ""}">${l} (${counts[k]})</button>`).join("");
+  const sum = {}; active.filter(s => s.date.slice(0, 10) === today).forEach(s => { sum[s.currency] = (sum[s.currency] || 0) + s.total; });
+  const todayTxt = Object.keys(sum).length ? "Bugungi savdo: " + Object.entries(sum).map(([c, v]) => krMoney(v, c)).join(" + ") : "";
+  $("slStatus").textContent = [line, SL.msg, SL.state === "ok" ? todayTxt : ""].filter(Boolean).join(" · ");
+  const q = SL.q.trim().toLowerCase();
+  const list = SL.list.filter(s => (SL.filter === "all" || (SL.filter === "today" ? !s.cancelled && s.date.slice(0, 10) === today : SL.filter === "debt" ? !s.cancelled && s.debt > 0.005 : s.cancelled))
+    && (!q || s.client.toLowerCase().indexOf(q) >= 0 || s.items.some(it => it.name.toLowerCase().indexOf(q) >= 0 || (it.imeis || []).some(m => m.indexOf(q) >= 0))));
+  if (!list.length) { $("slList").innerHTML = `<div class="empty-box">${SL.state === "ok" ? (SL.list.length ? "Hech narsa topilmadi" : "Hozircha sotuv yo'q: «Yangi sotuv» tugmasini bosing") : ""}</div>`; return; }
+  const can = !!SL.mcp;
+  $("slList").innerHTML = `<table><thead><tr><th>№</th><th>Sotuv kuni</th><th>Mijoz</th><th>Tovar</th><th>Summa</th><th>To'langan</th><th>Qarz</th><th>Holat</th><th></th></tr></thead><tbody>`
+    + list.slice(0, 300).map(s => {
+      const qty = s.items.reduce((a, it) => a + (Number(it.qty) || 0), 0);
+      let act = `<button data-slview="${esc(s.id)}">${SL.open === s.id ? "Yopish" : "Ko'rish"}</button>`;
+      if (!s.cancelled && can && qtDebtLeft(s) > 0.005) act += `<button data-slpay="${esc(s.id)}">To'lov</button>`;
+      if (!s.cancelled && can) act += `<button data-slret="${esc(s.id)}">Qaytarish</button>`;
+      if (!s.cancelled && can) act += `<button data-slcancel="${esc(s.id)}">${SL.pendCancel === s.id ? "Ha, bekor qilish" : "Bekor qilish"}</button>`;
+      let row = `<tr class="${s.cancelled ? "slx" : ""}"><td>${esc(s.number)}</td><td>${esc(s.date.slice(0, 10))}</td><td>${esc(s.client)}</td><td class="num">${qty.toLocaleString("ru-RU")} dona</td><td class="num">${krMoney(s.total, s.currency)}</td><td class="num">${krMoney(s.paid, s.currency)}<div class="tmeta">${esc(s.payType)}</div></td><td class="num">${s.cancelled ? (s.debt > 0.005 ? krMoney(s.debt, s.currency) : "—") : qtDebtLeft(s) > 0.005 ? `<span class="balpos">${krMoney(qtDebtLeft(s), s.currency)}</span>` : "—"}</td>`
+        + `<td>${s.cancelled ? `<span class="st st-draft">Bekor qilingan</span>` : `<span class="st st-done">Yakunlangan</span>` + qtSaleBadge(s)}</td><td class="krAct">${act}</td></tr>`;
+      if (SL.open === s.id) row += `<tr class="krDet"><td></td><td colspan="8">` + s.items.map(it => `<div><b>${esc(it.name)}</b> — ${esc(it.qty)} × ${krMoney(Number(it.price) || 0, s.currency)}${it.imeis && it.imeis.length ? `<div class="imeis">IMEI: ${it.imeis.map(esc).join(", ")}</div>` : ""}</div>`).join("")
+        + (s.seller ? `<div class="tmeta">Sotuvchi: ${esc(s.seller)}</div>` : "") + (s.note ? `<div class="tmeta">Izoh: ${esc(s.note)}</div>` : "") + (s.rate ? `<div class="tmeta">Kurs: 1 $ = ${Number(s.rate).toLocaleString("ru-RU")} so'm</div>` : "") + `</td></tr>`;
+      return row;
+    }).join("") + `</tbody></table>`;
+}
+$("slForm").addEventListener("submit", e => e.preventDefault());
+$("slSave").addEventListener("click", slSave);
+$("slAdd").addEventListener("click", () => { SL.items.push(slBlank()); slRows(); const ins = document.querySelectorAll('#slRows input[data-f="name"]'); if (ins.length) ins[ins.length - 1].focus(); });
+$("slCur").addEventListener("change", slTotals); $("slRate").addEventListener("input", slTotals); $("slPaid").addEventListener("input", slTotals);
+$("slFull").addEventListener("click", () => { $("slPaid").value = Math.round(slTotal() * 100) / 100 || ""; slTotals(); });
+$("slRows").addEventListener("input", e => {
+  const el = e.target, tr = el.closest("tr[data-i]"); if (!tr || !el.dataset.f) return;
+  const it = SL.items[Number(tr.dataset.i)]; if (!it) return;
+  it[el.dataset.f] = el.value;
+  if (el.dataset.f === "imei") { const n = krImeis(el.value).length; if (n) { it.qty = n; tr.querySelector('[data-f="qty"]').value = n; } }
+  slTotals();
+});
+$("slRows").addEventListener("change", e => {
+  const el = e.target; if (el.dataset.f !== "name") return;
+  const tr = el.closest("tr[data-i]"), it = SL.items[Number(tr.dataset.i)], v = el.value.trim();
+  const p = krProduct(v) || KR.products.find(x => v && (x.sku === v || x.barcode === v));
+  if (p) { it.name = p.name; el.value = p.name; tr.querySelector('[data-f="imei"]').placeholder = p.marked ? "IMEI majburiy" : "ixtiyoriy"; }
+});
+$("slRows").addEventListener("click", e => { const b = e.target.closest("[data-rm]"); if (b) { SL.items.splice(Number(b.dataset.rm), 1); slRows(); } });
+$("slFilters").addEventListener("click", e => { const b = e.target.closest("[data-f]"); if (b) { SL.filter = b.dataset.f; slRender(); } });
+$("slQ").addEventListener("input", e => { SL.q = e.target.value; slRender(); });
+$("slList").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.slview) { SL.open = SL.open === b.dataset.slview ? "" : b.dataset.slview; slRender(); }
+  else if (b.dataset.slcancel) { if (SL.pendCancel === b.dataset.slcancel) slCancel(b.dataset.slcancel); else { SL.pendCancel = b.dataset.slcancel; slRender(); } }
+});
+slReset();
+(async () => {
+  let mcp = null;
+  try { mcp = window.claude && window.claude.use ? await window.claude.use("mcp") : null; } catch (e) { mcp = null; }
+  if (!mcp) { SL.state = "off"; slRender(); return; }
+  SL.mcp = mcp;
+  try {
+    mcp.watchTool(GS, "get_values", { spreadsheetId:BASE_ID, range:SL_RANGE }, ev => {
+      if (ev.type === "data") { if (!SL.busy) slApply(krVals(ev)); return; }
+      const c = ev.error && ev.error.code;
+      if (SL.state !== "ok" || !SL.list.length) SL.state = c || "upstream_error";
+      slRender();
+    }, { refetchInterval:60000 });
+  } catch (e) {}
+})();
+
+const YL_LOGO = "logo.png";
+// ===== Sotuv: Qaytarish — yordamchi funksiyalar (asosiy kod qaytarish.js faylida) =====
+var QT = { list:[] };
+function qtActive() { return QT ? QT.list.filter(r => !r.cancelled) : []; }
+// Sotuv bo'yicha qaytarilganlar: IMEI -> soni, tovar qatori (idx) -> soni, qarzdan ayirilgan summa
+function qtBack(saleId) {
+  const imei = {}, idx = {}; let debtCut = 0;
+  qtActive().filter(r => r.saleId === saleId).forEach(r => {
+    debtCut += r.debtCut;
+    r.items.forEach(it => { if (it.imeis && it.imeis.length) it.imeis.forEach(m => { imei[m] = (imei[m] || 0) + 1; }); else idx[it.idx] = (idx[it.idx] || 0) + (Number(it.qty) || 0); });
+  });
+  return { imei, idx, debtCut };
+}
+// Barcha qaytarilgan IMEI'lar (sotuvda qayta sotish va yorliq uchun): IMEI -> { n: soni, dest: oxirgi joyi }
+function qtImeiMap() {
+  const m = {};
+  qtActive().slice().reverse().forEach(r => r.items.forEach(it => (it.imeis || []).forEach(x => { const o = m[x] || (m[x] = { n:0, dest:"" }); o.n++; o.dest = it.dest; })));
+  return m;
+}
+// Mijoz to'lovlari va bo'lib to'lash — yordamchi funksiyalar (asosiy kod tolov.js faylida)
+var PAY = { list:[] }, BOL = { list:[] };
+function payActive() { return PAY ? PAY.list.filter(p => !p.cancelled) : []; }
+function payBySale(id) { let s = 0; payActive().forEach(p => (p.alloc || []).forEach(a => { if (a.saleId === id) s += Number(a.sum) || 0; })); return Math.round(s * 100) / 100; }
+function qtDebtLeft(s) { return Math.max(0, Math.round((s.debt - qtBack(s.id).debtCut - payBySale(s.id)) * 100) / 100); }
+function qtSaleBadge(s) {
+  const rs = qtActive().filter(r => r.saleId === s.id); if (!rs.length) return "";
+  const n = rs.reduce((a, r) => a + r.items.reduce((b, it) => b + (Number(it.qty) || 0), 0), 0);
+  return `<div class="tmeta">Qaytarilgan: ${n} dona (${rs.map(r => "№" + r.number).join(", ")})</div>`;
+}
+
+// ===== Sotuv: Yorliq (etiketka) — 58×40 mm narx yorliqlari, XPrinter uchun PDF =====
+const YL = { rows:[], q:"", sel:new Set(), labels:[], busy:false, msg:"" };
+const YL_SIZES = [[58, 40], [58, 30], [50, 30], [40, 30], [40, 25], [30, 20], [60, 40], [70, 50], [100, 50]];
+let YL_W = 58, YL_H = 40; const YL_PX = 12; // mm va 1 mm dagi piksel
+try { const sv = (localStorage.getItem("tsunami_yl_size") || "").split("x").map(Number); if (sv[0] >= 20 && sv[1] >= 15) { YL_W = sv[0]; YL_H = sv[1]; } } catch (e) {}
+const ylLogo = new Image(); ylLogo.src = YL_LOGO;
+(function ylBuild() {
+  const el = document.createElement("div");
+  el.id = "yorliqApp";
+  el.innerHTML = `<div class="panel"><div class="thead"><h3>Omborga kelgan tovarlar</h3><div class="hbtns"><input class="search" id="ylQ" placeholder="Qidirish: nomi yoki IMEI"><button type="button" class="mini" id="ylManual">+ Qo'lda qo'shish</button></div></div>
+    <div class="status" id="ylSrcStatus"></div><div id="ylSrc" class="ylsrc"></div></div>
+    <div class="panel"><div class="thead"><h3>Yorliqlar</h3><div class="hbtns">
+      <label class="ylrate">O'lcham<select id="ylSize">${YL_SIZES.map(([w, h]) => `<option value="${w}x${h}">${w}×${h} mm</option>`).join("")}<option value="custom">Boshqa o'lcham…</option></select></label>
+      <span class="ylcustom" id="ylCustom" hidden><input type="number" id="ylW" min="20" max="150" step="1" title="Eni, mm" style="width:64px"> × <input type="number" id="ylH" min="15" max="150" step="1" title="Bo'yi, mm" style="width:64px"> mm</span>
+      <label class="ylrate">Kurs (1 $ = so'm)<input type="number" id="ylRate" min="0" step="1" placeholder="masalan 12050"></label>
+      <button type="button" class="mini" id="ylAuto" title="B/U iPhone 11–13: tannarx + 55 $, 14 va yangilari: + 60 $. Yangi telefon: tannarx + 15 $, so'mda">Narx qoidasi bo'yicha</button>
+      <button type="button" class="openbtn" id="ylPdf">PDF yuklab olish</button></div></div>
+      <div class="status" id="ylStatus"></div>
+      <div id="ylEdit"></div>
+      <div id="ylPrev" class="ylprev"></div></div>`;
+  $("kirimApp").parentNode.insertBefore(el, $("kirimApp"));
+})();
+function ylSrcRows() {
+  const out = [];
+  KR.list.filter(k => k.state === "done").forEach(k => (k.items || []).forEach(it => {
+    const base = { name:it.name, cost:Number(it.price) || 0, cur:k.currency, date:String(k.date || "").slice(0, 10), kirim:k.number };
+    if (it.imeis && it.imeis.length) it.imeis.forEach(m => out.push(Object.assign({ key:k.id + ":" + m, imei:m }, base)));
+    else out.push(Object.assign({ key:k.id + ":" + it.name, imei:"", qty:it.qty }, base));
+  }));
+  // Sotilgan IMEI: sotuvlar soni qaytarishlardan ko'p bo'lsa; «brak» bo'lib qaytgani ham sotuvga chiqmaydi
+  const cnt = {}, back = qtImeiMap();
+  SL.list.filter(s => !s.cancelled).forEach(s => s.items.forEach(it => (it.imeis || []).forEach(m => { cnt[m] = (cnt[m] || 0) + 1; })));
+  return out.filter(r => !r.imei || ((cnt[r.imei] || 0) - (back[r.imei] ? back[r.imei].n : 0) <= 0 && !(back[r.imei] && back[r.imei].dest === "brak")));
+}
+function ylRenderSrc() {
+  if (!$("ylSrc")) return;
+  const all = ylSrcRows(), q = YL.q.trim().toLowerCase();
+  const list = all.filter(r => !q || r.name.toLowerCase().indexOf(q) >= 0 || r.imei.indexOf(q) >= 0);
+  $("ylSrcStatus").textContent = KR.state !== "ok" ? krDbLine() : `Omborda (sotilmagan): ${all.length} ta · belgilang va yorliq ro'yxatiga qo'shiladi`;
+  if (!list.length) { $("ylSrc").innerHTML = `<div class="empty-box">${KR.state === "ok" ? (q ? "Hech narsa topilmadi" : "Hozircha omborga qabul qilingan tovar yo'q. Tovarni qo'lda qo'shishingiz mumkin.") : ""}</div>`; return; }
+  $("ylSrc").innerHTML = `<table><thead><tr><th><input type="checkbox" id="ylAll"></th><th>Tovar</th><th>IMEI</th><th>Tannarx</th><th>Kelgan sana</th></tr></thead><tbody>`
+    + list.slice(0, 300).map(r => `<tr><td><input type="checkbox" data-ylk="${esc(r.key)}"${YL.labels.some(l => l.key === r.key) ? " checked" : ""}></td><td>${esc(r.name)}${r.qty > 1 ? ` <span class="tmeta">×${r.qty}</span>` : ""}</td><td class="mono">${esc(r.imei) || "—"}</td><td class="num">${krMoney(r.cost, r.cur)}</td><td>${esc(r.date)}</td></tr>`).join("") + `</tbody></table>`;
+}
+function ylIsUsed(name) { return /\b(b\/u|bu|б\/у|used)\b/i.test(name); }
+function ylNewLabel(r) {
+  const used = ylIsUsed(r.name);
+  return { key:r.key || "m" + Date.now() + Math.random(), name:r.name.replace(/\s*\b(b\/u|б\/у)\b\s*/ig, " ").trim(), used, battery:"", price:"", cur:used ? "USD" : "UZS", imei:r.imei || "", date:new Date().toLocaleDateString("en-CA"), cost:r.cost || 0, costCur:r.cur || "USD" };
+}
+function ylAutoPrice(l) {
+  if (!l.cost || l.costCur !== "USD") return false;
+  const rate = Number($("ylRate").value) || 0;
+  if (l.used) {
+    const m = l.name.match(/iphone\s*(\d{2})/i); if (!m) return false;
+    const n = Number(m[1]); l.price = String(l.cost + (n >= 14 ? 60 : 55)); l.cur = "USD"; return true;
+  }
+  if (!rate) return "rate";
+  l.price = String(Math.round((l.cost + 15) * rate / 1000) * 1000); l.cur = "UZS"; return true;
+}
+function ylRenderEdit() {
+  if (!YL.labels.length) { $("ylEdit").innerHTML = `<div class="empty-box">Yuqoridagi ro'yxatdan tovarlarni belgilang yoki qo'lda qo'shing.</div>`; $("ylPrev").innerHTML = ""; ylStatus(); return; }
+  $("ylEdit").innerHTML = `<div class="ktable"><table class="yltab"><thead><tr><th>Tovar nomi (yorliqda)</th><th>Holat</th><th>Batareya %</th><th>Narx</th><th>Valyuta</th><th>IMEI</th><th>Sana</th><th></th></tr></thead><tbody>`
+    + YL.labels.map((l, i) => `<tr data-i="${i}"><td><input data-f="name" value="${esc(l.name)}" maxlength="60"></td>`
+      + `<td><select data-f="used"><option value="0"${l.used ? "" : " selected"}>Yangi</option><option value="1"${l.used ? " selected" : ""}>B/U</option></select></td>`
+      + `<td><input data-f="battery" class="xs" type="number" min="0" max="100" value="${esc(l.battery)}"${l.used ? "" : " disabled"} placeholder="${l.used ? "87" : "—"}"></td>`
+      + `<td><input data-f="price" class="sm" type="number" min="0" step="any" value="${esc(l.price)}" placeholder="${l.cost ? "tannarx " + l.cost : "0"}"></td>`
+      + `<td><select data-f="cur"><option value="USD"${l.cur === "USD" ? " selected" : ""}>$</option><option value="UZS"${l.cur === "UZS" ? " selected" : ""}>so'm</option></select></td>`
+      + `<td><input data-f="imei" class="sm" value="${esc(l.imei)}" maxlength="20"></td><td><input data-f="date" type="date" value="${esc(l.date)}"></td>`
+      + `<td><button type="button" data-rm="${i}" title="Olib tashlash">×</button></td></tr>`).join("") + `</tbody></table></div>`;
+  ylDrawAll();
+}
+function ylStatus() { $("ylStatus").textContent = [YL.labels.length ? `${YL.labels.length} ta yorliq` : "", YL.msg].filter(Boolean).join(" · "); }
+function ylFmt(n) { return Math.round(Number(n) || 0).toLocaleString("ru-RU").replace(/ /g, " "); }
+function ylFit(g, text, maxW, size, weight) {
+  let s = size; g.font = `${weight} ${s}px Poppins, sans-serif`;
+  while (g.measureText(text).width > maxW && s > 8) { s -= 1; g.font = `${weight} ${s}px Poppins, sans-serif`; }
+  return s;
+}
+function ylWrap(g, text, maxW) {
+  const words = text.split(/\s+/), lines = [];
+  let cur = "";
+  words.forEach(w => { const t = cur ? cur + " " + w : w; if (g.measureText(t).width <= maxW || !cur) cur = t; else { lines.push(cur); cur = w; } });
+  if (cur) lines.push(cur);
+  return lines;
+}
+function ylDraw(l) {
+  // O'lcham: asl dizayn 58x40 mm; boshqa o'lchamlarda hamma narsa mutanosib kichrayadi yoki kattalashadi
+  const P = YL_PX, W = YL_W * P, H = YL_H * P, k = Math.min(YL_W / 58, YL_H / 40), u = k * P, m = Math.max(1.2, 2.2 * k) * P;
+  const c = document.createElement("canvas"); c.width = Math.round(W); c.height = Math.round(H);
+  const g = c.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, W, H); g.fillStyle = "#000"; g.strokeStyle = "#000";
+  const topH = 8 * u;
+  if (ylLogo.complete && ylLogo.naturalWidth) { const lh = 5.2 * u, lw = lh * ylLogo.naturalWidth / ylLogo.naturalHeight; g.drawImage(ylLogo, m, (topH - lh) / 2 + 0.3 * u, lw, lh); }
+  if (l.used) {
+    const pw = 11 * u, ph = 5 * u, px = W - m - pw, py = (topH - ph) / 2 + 0.3 * u, r = ph / 2;
+    g.beginPath(); g.moveTo(px + r, py); g.arcTo(px + pw, py, px + pw, py + ph, r); g.arcTo(px + pw, py + ph, px, py + ph, r); g.arcTo(px, py + ph, px, py, r); g.arcTo(px, py, px + pw, py, r); g.closePath(); g.fill();
+    g.fillStyle = "#fff"; g.font = `700 ${3.4 * u}px Poppins, sans-serif`; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("B/U", px + pw / 2, py + ph / 2 + 0.2 * u); g.fillStyle = "#000";
+  }
+  g.lineWidth = Math.max(0.2 * P, 0.25 * u); g.beginPath(); g.moveTo(m, topH + 0.6 * u); g.lineTo(W - m, topH + 0.6 * u); g.stroke();
+  const footY = H - 5.2 * u, nameTop = topH + 1.4 * u;
+  g.textAlign = "left"; g.textBaseline = "alphabetic";
+  const maxW = W - 2 * m; let fs = 4.3 * u; g.font = `700 ${fs}px Poppins, sans-serif`;
+  let lines = ylWrap(g, l.name || "Tovar nomi", maxW);
+  while ((lines.length > 2 || lines.some(t => g.measureText(t).width > maxW)) && fs > 2.4 * u) { fs -= 0.2 * u; g.font = `700 ${fs}px Poppins, sans-serif`; lines = ylWrap(g, l.name || "Tovar nomi", maxW); }
+  lines = lines.slice(0, 2);
+  let y = nameTop + fs;
+  lines.forEach(t => { g.fillText(t, m, y); y += fs * 1.08; });
+  const priceBase = footY - 1.4 * u;
+  const num = l.price === "" ? "—" : ylFmt(l.price), unit = l.cur === "USD" ? "$" : "so'm";
+  g.font = `600 ${4 * u}px Poppins, sans-serif`; const uw = g.measureText(unit).width + 1.2 * u;
+  const room = Math.max(3 * u, priceBase - (y - fs * 0.1));
+  const ps = ylFit(g, num, maxW - uw, Math.min(10 * u, room), 700);
+  const bat = Number(l.battery), bh = 3.4 * u;
+  if (l.used && l.battery !== "" && bat >= 0 && y - fs * 0.25 + bh < priceBase - ps * 0.8) {
+    const bw = 7 * u, bx = m, by = y - fs * 0.25;
+    g.lineWidth = Math.max(0.25 * P, 0.35 * u); g.strokeRect(bx, by, bw, bh); g.fillRect(bx + bw, by + bh * 0.3, 0.6 * u, bh * 0.4);
+    g.fillRect(bx + 0.6 * u, by + 0.6 * u, Math.max(0, (bw - 1.2 * u) * Math.min(100, bat) / 100), bh - 1.2 * u);
+    g.font = `600 ${3.2 * u}px Poppins, sans-serif`; g.fillText(`${Math.min(100, bat)}%`, bx + bw + 1.6 * u, by + bh - 0.35 * u);
+  }
+  g.font = `700 ${ps}px Poppins, sans-serif`; const nw = g.measureText(num).width;
+  g.fillText(num, m, priceBase);
+  if (l.cur === "USD") { g.font = `600 ${Math.min(4.6 * u, ps * 0.5)}px Poppins, sans-serif`; g.fillText("$", m + nw + 0.8 * u, priceBase - ps * 0.38); }
+  else { g.font = `600 ${Math.min(4 * u, ps * 0.45)}px Poppins, sans-serif`; g.fillText("so'm", m + nw + 1 * u, priceBase); }
+  g.lineWidth = Math.max(0.2 * P, 0.25 * u); g.beginPath(); g.moveTo(m, footY); g.lineTo(W - m, footY); g.stroke();
+  const d = String(l.date || "").split("-"); const ds = d.length === 3 ? `${d[2]}.${d[1]}.${d[0]}` : "";
+  g.font = `500 ${2.9 * u}px Poppins, sans-serif`; g.textBaseline = "middle";
+  g.fillText(ds, m, footY + 2.6 * u);
+  const im = String(l.imei || "").replace(/\D/g, "");
+  if (im) { g.textAlign = "right"; const last = im.slice(-5); g.font = `700 ${3 * u}px Poppins, sans-serif`; g.fillText(last, W - m, footY + 2.6 * u); const lw = g.measureText(last).width; g.font = `500 ${2.4 * u}px Poppins, sans-serif`; g.fillText("IMEI", W - m - lw - 1 * u, footY + 2.6 * u); }
+  return c;
+}
+function ylDrawAll() {
+  const box = $("ylPrev"); box.innerHTML = "";
+  YL.labels.forEach(l => { const c = ylDraw(l); ylCard(c); box.appendChild(c); });
+  ylStatus();
+}
+async function ylPdf() {
+  if (YL.busy) return;
+  if (!YL.labels.length) { YL.msg = "Avval yorliq qo'shing."; return ylStatus(); }
+  const noPrice = YL.labels.filter(l => l.price === "").length;
+  if (noPrice) { YL.msg = `${noPrice} ta yorliqda narx yo'q.`; return ylStatus(); }
+  if (!window.jspdf) { YL.msg = "PDF kutubxonasi yuklanmadi, sahifani qayta oching."; return ylStatus(); }
+  let dl = null;
+  try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
+  if (!dl) { YL.msg = "Bu ko'rinishda fayl yuklab bo'lmaydi: sahifani claude.ai'da oching."; return ylStatus(); }
+  YL.busy = true; $("ylPdf").disabled = true;
+  try {
+    const ori = YL_W >= YL_H ? "landscape" : "portrait";
+    const doc = new window.jspdf.jsPDF({ orientation:ori, unit:"mm", format:[YL_W, YL_H] });
+    YL.labels.forEach((l, i) => { if (i) doc.addPage([YL_W, YL_H], ori); doc.addImage(ylDraw(l).toDataURL("image/png"), "PNG", 0, 0, YL_W, YL_H, undefined, "FAST"); });
+    const blob = doc.output("blob");
+    await dl.save({ filename:`yorliq_${YL_W}x${YL_H}_${new Date().toLocaleDateString("en-CA")}_${YL.labels.length}ta.pdf`, data:blob });
+    YL.msg = `PDF tayyor: XPrinter'da ${YL_W}×${YL_H} mm o'lchamda, masshtabsiz (100%) chop eting.`;
+  } catch (e) {
+    const c = e && e.code;
+    YL.msg = c === "declined" ? "Yuklab olish bekor qilindi." : c === "rate_limited" ? "Oldingi so'rov hali ochiq, birozdan keyin qayta bosing." : "PDF'ni yuklab bo'lmadi, qayta urinib ko'ring.";
+  }
+  YL.busy = false; $("ylPdf").disabled = false; ylStatus();
+}
+$("ylQ").addEventListener("input", e => { YL.q = e.target.value; ylRenderSrc(); });
+$("ylSrc").addEventListener("change", e => {
+  const all = ylSrcRows();
+  if (e.target.id === "ylAll") {
+    const q = YL.q.trim().toLowerCase();
+    all.filter(r => !q || r.name.toLowerCase().indexOf(q) >= 0 || r.imei.indexOf(q) >= 0).slice(0, 300).forEach(r => {
+      const has = YL.labels.some(l => l.key === r.key);
+      if (e.target.checked && !has) YL.labels.push(ylNewLabel(r));
+      if (!e.target.checked && has) YL.labels = YL.labels.filter(l => l.key !== r.key);
+    });
+  } else if (e.target.dataset.ylk) {
+    const r = all.find(x => x.key === e.target.dataset.ylk); if (!r) return;
+    if (e.target.checked) YL.labels.push(ylNewLabel(r)); else YL.labels = YL.labels.filter(l => l.key !== r.key);
+  } else return;
+  YL.msg = ""; ylRenderSrc(); ylRenderEdit();
+});
+$("ylManual").addEventListener("click", () => { YL.labels.push(ylNewLabel({ name:"" })); ylRenderEdit(); const ins = document.querySelectorAll('#ylEdit input[data-f="name"]'); if (ins.length) ins[ins.length - 1].focus(); });
+$("ylEdit").addEventListener("input", e => {
+  const el = e.target, tr = el.closest("tr[data-i]"); if (!tr || !el.dataset.f) return;
+  const l = YL.labels[Number(tr.dataset.i)]; if (!l) return;
+  if (el.dataset.f === "used") { l.used = el.value === "1"; if (!l.used) l.battery = ""; ylRenderEdit(); return; }
+  l[el.dataset.f] = el.value;
+  const cards = $("ylPrev").children, i = Number(tr.dataset.i);
+  if (cards[i]) { const c = ylDraw(l); ylCard(c); $("ylPrev").replaceChild(c, cards[i]); }
+});
+$("ylEdit").addEventListener("change", e => { if (e.target.dataset.f === "used" || e.target.dataset.f === "cur") { const tr = e.target.closest("tr[data-i]"), l = YL.labels[Number(tr.dataset.i)]; if (e.target.dataset.f === "cur") l.cur = e.target.value; else { l.used = e.target.value === "1"; if (!l.used) l.battery = ""; } ylRenderEdit(); } });
+$("ylEdit").addEventListener("click", e => { const b = e.target.closest("[data-rm]"); if (b) { YL.labels.splice(Number(b.dataset.rm), 1); ylRenderSrc(); ylRenderEdit(); } });
+$("ylAuto").addEventListener("click", () => {
+  let ok = 0, needRate = false, skip = 0;
+  YL.labels.forEach(l => { const r = ylAutoPrice(l); if (r === true) ok++; else if (r === "rate") needRate = true; else skip++; });
+  YL.msg = [ok ? `${ok} ta narx qo'yildi` : "", needRate ? "yangi telefonlar uchun kursni kiriting" : "", skip ? `${skip} tasiga qoida qo'llanmadi (tannarx $ da emas yoki model iPhone emas)` : ""].filter(Boolean).join(", ");
+  ylRenderEdit();
+});
+$("ylPdf").addEventListener("click", ylPdf);
+function ylCard(c) { c.className = "ylcard"; const z = Math.min(5, 290 / YL_W); c.style.width = `${Math.round(YL_W * z)}px`; c.style.height = `${Math.round(YL_H * z)}px`; }
+function ylSetSize(w, h) {
+  if (!(w >= 20 && w <= 150 && h >= 15 && h <= 150)) { YL.msg = "O'lcham 20–150 mm (eni) va 15–150 mm (bo'yi) oralig'ida bo'lsin."; return ylStatus(); }
+  YL_W = w; YL_H = h; YL.msg = "";
+  try { localStorage.setItem("tsunami_yl_size", `${w}x${h}`); } catch (e) {}
+  ylDrawAll();
+}
+function ylSyncSizeUi() {
+  const v = `${YL_W}x${YL_H}`, known = YL_SIZES.some(([w, h]) => `${w}x${h}` === v);
+  $("ylSize").value = known ? v : "custom"; $("ylCustom").hidden = known; $("ylW").value = YL_W; $("ylH").value = YL_H;
+}
+$("ylSize").addEventListener("change", e => {
+  if (e.target.value === "custom") { $("ylCustom").hidden = false; $("ylW").value = YL_W; $("ylH").value = YL_H; $("ylW").focus(); return; }
+  $("ylCustom").hidden = true; const [w, h] = e.target.value.split("x").map(Number); ylSetSize(w, h);
+});
+["ylW", "ylH"].forEach(id => $(id).addEventListener("change", () => ylSetSize(Number($("ylW").value), Number($("ylH").value))));
+ylSyncSizeUi();
+function ylOpen() { ylRenderSrc(); ylRenderEdit(); }
+document.fonts && document.fonts.load("700 20px Poppins").then(() => { if (document.body.classList.contains("yorliqApp-on")) ylDrawAll(); }).catch(() => {});
+ylLogo.onload = () => { if (document.body.classList.contains("yorliqApp-on")) ylDrawAll(); };
+
+// ===== Yetkazib beruvchilar (Ta'minot) va Mijozlar (CRM): yaratish va ro'yxat, Google Drive bazasida =====
+const PARTY_CFG = {
+  supApp:{ sheet:"Yetkazib beruvchilar", sec:"taminot", sub:"Yetkazib beruvchilar", one:"yetkazib beruvchi", title:"Yangi yetkazib beruvchi", listTitle:"Yetkazib beruvchilar", btn:"+ Yangi yetkazib beruvchi", prefix:"S",
+    fields:[
+      { k:"type", col:1, label:"Turi", type:"seg", options:["Jismoniy shaxs", "Yuridik shaxs"] },
+      { k:"name", col:2, label:"Nomi", req:true, ph:"Masalan: BM Electronics", wide:true },
+      { k:"phone", col:3, label:"Telefon", type:"tel", req:true, ph:"+998 90 123 45 67" },
+      { k:"phone2", col:4, label:"Qo'shimcha telefon", type:"tel", ph:"ixtiyoriy" },
+      { k:"contact", col:7, label:"Mas'ul shaxs", ph:"Kim bilan gaplashiladi" },
+      { k:"inn", col:6, label:"STIR (INN)", ph:"9 xonali", legal:true, maxlength:9 },
+      { k:"cur", col:8, label:"Hisob-kitob valyutasi", type:"select", options:["USD", "UZS"] },
+      { k:"opening", col:13, label:"Boshlang'ich balans (+ biz qarzmiz, − avans berilgan)", type:"num", ph:"0" },
+      { k:"addr", col:5, label:"Manzil", ph:"ixtiyoriy", wide:true },
+      { k:"note", col:9, label:"Izoh", ph:"ixtiyoriy", wide:true }
+    ],
+    cols:[["name", "Nomi"], ["phone", "Telefon"], ["contact", "Mas'ul shaxs"], ["bal", "Balans (Tsunami)"], ["bito", "Bito balansi"], ["addr", "Manzil"]] },
+  cliApp:{ sheet:"Mijozlar", sec:"crm", sub:"Mijozlar", one:"mijoz", title:"Yangi mijoz", listTitle:"Mijozlar", btn:"+ Yangi mijoz", prefix:"M",
+    fields:[
+      { k:"type", col:1, label:"Turi", type:"seg", options:["Jismoniy shaxs", "Yuridik shaxs"] },
+      { k:"name", col:2, label:"F.I.Sh. yoki tashkilot nomi", req:true, ph:"Masalan: Matniyozov Farxod", wide:true },
+      { k:"phone", col:3, label:"Telefon", type:"tel", req:true, ph:"+998 90 123 45 67" },
+      { k:"phone2", col:4, label:"Qo'shimcha telefon", type:"tel", ph:"ixtiyoriy" },
+      { k:"cat", col:8, label:"Kategoriya", type:"select", options:["Oddiy", "Doimiy", "VIP", "Ulgurji"] },
+      { k:"birth", col:7, label:"Tug'ilgan sana", type:"date", natural:true },
+      { k:"inn", col:6, label:"STIR (INN)", ph:"9 xonali", legal:true, maxlength:9 },
+      { k:"opening", col:13, label:"Boshlang'ich balans, so'm (+ mijoz qarzi, − avans)", type:"num", ph:"0" },
+      { k:"addr", col:5, label:"Manzil", ph:"ixtiyoriy", wide:true },
+      { k:"note", col:9, label:"Izoh", ph:"ixtiyoriy", wide:true }
+    ],
+    cols:[["name", "Nomi / F.I.Sh."], ["phone", "Telefon"], ["cat", "Kategoriya"], ["bal", "Balans"], ["addr", "Manzil"]] }
+};
+const PARTY = {};
+function ptPhone(v) {
+  let d = String(v || "").replace(/\D/g, "");
+  if (!d) return "";
+  if (d.length === 9) d = "998" + d;
+  if (d.length === 12 && d.indexOf("998") === 0) return `+998 ${d.slice(3, 5)} ${d.slice(5, 8)} ${d.slice(8, 10)} ${d.slice(10)}`;
+  return "+" + d;
+}
+function ptDigits(v) { return String(v || "").replace(/\D/g, "").slice(-9); }
+function ptBuild(app) {
+  const c = PARTY_CFG[app];
+  const field = f => {
+    const id = `${app}_${f.k}`, cls = [f.wide ? "span2" : "", f.legal ? "pt-legal" : "", f.natural ? "pt-natural" : ""].filter(Boolean).join(" ");
+    if (f.type === "seg") return `<div class="pt-seg span2" id="${id}">${f.options.map((o, i) => `<label class="chip"><input type="radio" name="${id}" value="${esc(o)}"${i ? "" : " checked"}> ${esc(o)}</label>`).join("")}</div>`;
+    if (f.type === "select") return `<label class="${cls}">${esc(f.label)}<select id="${id}">${f.options.map(o => `<option>${esc(o)}</option>`).join("")}</select></label>`;
+    return `<label class="${cls}">${esc(f.label)}${f.req ? " *" : ""}<input id="${id}" type="${f.type === "date" ? "date" : f.type === "tel" ? "tel" : f.type === "num" ? "number" : "text"}"${f.type === "num" ? ' step="any"' : ""} maxlength="${f.maxlength || 160}" placeholder="${esc(f.ph || "")}"${f.type === "tel" ? ' inputmode="tel"' : ""}></label>`;
+  };
+  const el = document.createElement("div");
+  el.id = app; el.className = "ptApp";
+  el.innerHTML = `<div class="panel fpanel"><div class="thead"><h3 id="${app}_ftitle">${esc(c.title)}</h3><button type="button" class="closebtn" data-close="${app}">Yopish ✕</button></div>`
+    + `<form class="kform" id="${app}_form"><div class="kgrid">${c.fields.map(field).join("")}</div><div class="kbtns"><button type="button" class="pri" id="${app}_save">Saqlash</button></div><div class="status" id="${app}_fmsg"></div></form></div>`
+    + `<div class="panel"><div class="thead"><h3>${esc(c.listTitle)}</h3><div class="hbtns"><input class="search" id="${app}_q" placeholder="Qidirish: nomi, telefon, STIR"><button type="button" class="openbtn" data-open="${app}">${esc(c.btn)}</button></div></div><div class="status" id="${app}_status"></div><div id="${app}_list"></div></div>`;
+  $("kirimApp").parentNode.insertBefore(el, $("kirimApp"));
+  const P = PARTY[app] = { app, c, list:[], state:"loading", busy:false, editId:"", q:"", pendDel:"", msg:"", msgT:null, mcp:null, range:`'${c.sheet}'!A1:N5000` };
+  const val = f => f.type === "seg" ? ((document.querySelector(`input[name="${app}_${f.k}"]:checked`) || {}).value || f.options[0]) : $(`${app}_${f.k}`).value.trim();
+  const setVal = (f, v) => {
+    if (f.type === "seg") { const r = document.querySelector(`input[name="${app}_${f.k}"][value="${CSS.escape(v || f.options[0])}"]`) || document.querySelector(`input[name="${app}_${f.k}"]`); r.checked = true; }
+    else if (f.type === "select") $(`${app}_${f.k}`).value = f.options.indexOf(v) >= 0 ? v : f.options[0];
+    else $(`${app}_${f.k}`).value = v || "";
+  };
+  const legal = () => val(c.fields[0]) === "Yuridik shaxs";
+  const typeVis = () => { el.querySelectorAll(".pt-legal").forEach(x => { x.hidden = !legal(); }); el.querySelectorAll(".pt-natural").forEach(x => { x.hidden = legal(); }); };
+  const fmsg = (m, bad) => { const x = $(`${app}_fmsg`); x.textContent = m || ""; x.classList.toggle("err", !!bad); };
+  const say = m => { P.msg = m; clearTimeout(P.msgT); P.msgT = setTimeout(() => { P.msg = ""; P.render(); }, 6000); P.render(); };
+  P.parse = vals => {
+    const out = [];
+    (Array.isArray(vals) ? vals : []).forEach((r, i) => {
+      if (!i || !Array.isArray(r) || !r[0] || String(r[10] || "") === "O'chirilgan") return;
+      const o = { id:String(r[0]), row:i + 1, createdAt:String(r[11] || "") };
+      c.fields.forEach(f => { o[f.k] = String(r[f.col] || ""); });
+      out.push(o);
+    });
+    return out.sort((a, b) => a.name.localeCompare(b.name));
+  };
+  P.apply = vals => { P.list = P.parse(vals); P.state = "ok"; P.render(); if (app === "supApp") krMergeSuppliers(); };
+  P.reload = async () => { const r = await P.mcp.callTool(GS, "get_values", { spreadsheetId:BASE_ID, range:P.range }, { cache:false }); P.apply(krVals({ result:r })); };
+  P.reset = () => { P.editId = ""; c.fields.forEach(f => setVal(f, "")); typeVis(); $(`${app}_ftitle`).textContent = c.title; fmsg(""); };
+  P.load = id => {
+    const o = P.list.find(x => x.id === id); if (!o) return;
+    P.editId = id; c.fields.forEach(f => setVal(f, o[f.k])); typeVis();
+    $(`${app}_ftitle`).textContent = `Tahrirlash: ${o.name}`; fmsg(""); openForm(app, true);
+  };
+  P.save = async () => {
+    if (P.busy) return;
+    if (!P.mcp) return fmsg(krDbLine() || "Tsunami bazasi ulanmagan.", true);
+    const o = {}; c.fields.forEach(f => { o[f.k] = val(f); });
+    o.phone = ptPhone(o.phone); o.phone2 = ptPhone(o.phone2);
+    if (!o.name) return fmsg("Nomini kiriting.", true);
+    if (!o.phone) return fmsg("Telefon raqamini kiriting.", true);
+    if (ptDigits(o.phone).length < 9) return fmsg("Telefon raqami to'liq emas.", true);
+    if (o.phone2 && ptDigits(o.phone2).length < 9) return fmsg("Qo'shimcha telefon raqami to'liq emas.", true);
+    if (legal() && o.inn && !/^\d{9}$/.test(o.inn)) return fmsg("STIR 9 ta raqamdan iborat bo'lishi kerak.", true);
+    if (!legal()) o.inn = ""; else if ("birth" in o) o.birth = "";
+    if ("opening" in o && o.opening !== "" && !isFinite(Number(o.opening))) return fmsg("Boshlang'ich balansni raqam bilan kiriting.", true);
+    P.busy = true; $(`${app}_save`).disabled = true;
+    let step = "read";
+    try {
+      await P.reload();
+      const others = P.list.filter(x => x.id !== P.editId);
+      const dupP = others.find(x => [x.phone, x.phone2].filter(Boolean).some(p => ptDigits(p) === ptDigits(o.phone)));
+      if (dupP) { fmsg(`Bu telefon raqami «${dupP.name}» da bor.`, true); throw null; }
+      const dupN = others.find(x => x.name.toLowerCase() === o.name.toLowerCase());
+      if (dupN) { fmsg(`«${o.name}» nomli ${c.one} allaqachon bor (${dupN.phone}).`, true); throw null; }
+      if (o.inn) { const dupI = others.find(x => x.inn === o.inn); if (dupI) { fmsg(`STIR ${o.inn} «${dupI.name}» da bor.`, true); throw null; } }
+      const ex = P.editId ? P.list.find(x => x.id === P.editId) : null;
+      if (P.editId && !ex) { fmsg(`Bu ${c.one} boshqa joyda o'chirilgan.`, true); throw null; }
+      const now = new Date().toISOString(), id = ex ? ex.id : c.prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+      const row = Array(14).fill("");
+      row[0] = krT(id); c.fields.forEach(f => { row[f.col] = krT(o[f.k]); });
+      if ("opening" in o) row[13] = o.opening === "" ? "" : Number(o.opening);
+      row[10] = "Faol"; row[11] = krT(ex ? ex.createdAt : now); row[12] = krT(now);
+      step = "write";
+      if (ex) await P.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`'${c.sheet}'!A${ex.row}:N${ex.row}`, values:[row] });
+      else await P.mcp.callTool(GS, "append_values", { spreadsheetId:BASE_ID, range:`'${c.sheet}'!A1`, values:[row] });
+      say(ex ? `«${o.name}» saqlandi.` : `«${o.name}» qo'shildi.`);
+      P.reset(); openForm(app, false);
+      try { await P.reload(); } catch (e) {}
+    } catch (e) {
+      if (e) { const m = krCodeMsg(e.code); fmsg(m || (step === "write" ? "Javob kelmadi: saqlangan bo'lishi ham mumkin. Ro'yxatni tekshiring." : "Bazaga ulanib bo'lmadi, qayta urinib ko'ring."), true); }
+    }
+    P.busy = false; $(`${app}_save`).disabled = false;
+  };
+  P.del = async id => {
+    if (P.busy || !P.mcp) return;
+    P.busy = true;
+    try {
+      await P.reload();
+      const o = P.list.find(x => x.id === id); if (!o) throw null;
+      await P.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`'${c.sheet}'!K${o.row}`, values:[["O'chirilgan"]] });
+      if (P.editId === id) { P.reset(); openForm(app, false); }
+      say(`«${o.name}» o'chirildi.`);
+      try { await P.reload(); } catch (e) {}
+    } catch (e) { if (e) say(krCodeMsg(e.code) || "O'chirib bo'lmadi, qayta urinib ko'ring."); }
+    P.busy = false; P.pendDel = "";
+  };
+  P.render = () => {
+    const line = P.state === "ok" ? "" : P.state === "loading" ? "Tsunami bazasidan yuklanmoqda…" : P.state === "off" ? "Bu bo'lim bu ko'rinishda ishlamaydi: sahifani claude.ai'da, tizimga kirgan holda oching." : (krCodeMsg(P.state) || "Tsunami bazasiga hozircha ulanib bo'lmadi, birozdan keyin o'zi qayta urinadi.");
+    const q = P.q.trim().toLowerCase(), qd = q.replace(/\D/g, "");
+    const list = P.list.filter(o => !q || [o.name, o.contact || "", o.inn || "", o.addr || ""].some(x => x.toLowerCase().indexOf(q) >= 0) || (qd.length >= 3 && [o.phone, o.phone2].some(p => String(p || "").replace(/\D/g, "").indexOf(qd) >= 0)));
+    $(`${app}_status`).textContent = [line, P.msg, P.state === "ok" ? `Jami: ${P.list.length}${q ? "" : ""}` + (ptTotals(app, P.list) ? " · " + ptTotals(app, P.list) : "") + `${q ? `, topildi: ${list.length}` : ""}` : ""].filter(Boolean).join(" · ");
+    if (!list.length) { $(`${app}_list`).innerHTML = `<div class="empty-box">${P.state === "ok" ? (q ? "Hech narsa topilmadi" : `Hozircha ${c.one} yo'q: «${esc(c.btn.slice(2))}» tugmasini bosing`) : ""}</div>`; return; }
+    const can = !!P.mcp, shown = list.slice(0, 300);
+    $(`${app}_list`).innerHTML = `<table><thead><tr>${c.cols.map(x => `<th>${esc(x[1])}</th>`).join("")}<th></th></tr></thead><tbody>`
+      + shown.map(o => `<tr>${c.cols.map(([k]) => k === "name" ? `<td><b>${esc(o.name)}</b>${o.inn ? `<div class="tmeta">STIR ${esc(o.inn)}</div>` : ""}</td>` : k === "phone" ? `<td class="mono">${esc(o.phone)}${o.phone2 ? `<br>${esc(o.phone2)}` : ""}</td>` : k === "bal" ? `<td class="num">${ptBalFmt(ptBal(app, o), app)}</td>` : k === "bito" ? `<td class="num">${ptBitoFmt(o)}</td>` : k === "type" ? `<td class="small">${o.type === "Yuridik shaxs" ? "Yuridik" : "Jismoniy"}</td>` : `<td>${esc(o[k]) || "—"}</td>`).join("")}`
+        + `<td class="krAct">${can ? `<button data-ptedit="${esc(o.id)}">Tahrirlash</button><button data-ptdel="${esc(o.id)}">${P.pendDel === o.id ? "Ha, o'chirish" : "O'chirish"}</button>` : ""}</td></tr>`).join("")
+      + `</tbody></table>` + (list.length > shown.length ? `<div class="tmeta">Birinchi 300 tasi ko'rsatildi, qolganini qidiruv orqali toping.</div>` : "");
+  };
+  $(`${app}_form`).addEventListener("submit", e => { e.preventDefault(); P.save(); });
+  $(`${app}_save`).addEventListener("click", P.save);
+  $(`${app}_form`).addEventListener("change", e => { if (e.target.name === `${app}_type`) typeVis(); });
+  $(`${app}_form`).addEventListener("focusout", e => { if (e.target.type === "tel" && e.target.value.trim()) e.target.value = ptPhone(e.target.value); });
+  $(`${app}_q`).addEventListener("input", e => { P.q = e.target.value; P.render(); });
+  $(`${app}_list`).addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.ptedit) P.load(b.dataset.ptedit);
+    else if (b.dataset.ptdel) { if (P.pendDel === b.dataset.ptdel) P.del(b.dataset.ptdel); else { P.pendDel = b.dataset.ptdel; P.render(); } }
+  });
+  P.reset(); P.render();
+  return P;
+}
+// Balans: yetkazib beruvchi uchun + = biz qarzmiz; mijoz uchun + = mijoz bizga qarz
+function ptBal(app, o) {
+  const m = {};
+  const add = (cur, v) => { if (!v) return; cur = cur === "UZS" ? "UZS" : "USD"; m[cur] = (m[cur] || 0) + v; };
+  if (app === "supApp") {
+    add(o.cur, Number(o.opening) || 0);
+    const n = o.name.trim().toLowerCase();
+    KR.list.forEach(k => { if (k.state === "done" && String(k.supplier || "").trim().toLowerCase() === n) add(k.currency, Number(k.total) || 0); });
+  } else {
+    add("UZS", Number(o.opening) || 0);
+    const n = o.name.trim().toLowerCase();
+    SL.list.forEach(s => { if (!s.cancelled && s.debt > 0 && s.client.trim().toLowerCase() === n) add(s.currency, s.debt); });
+    qtActive().forEach(r => { if (r.debtCut > 0 && r.client.trim().toLowerCase() === n) add(r.currency, -r.debtCut); });
+    payActive().forEach(p => { if (p.client.trim().toLowerCase() === n) add(p.currency, -p.total); });
+  }
+  return m;
+}
+function ptSignTxt(app, v) { return app === "supApp" ? (v > 0 ? "biz qarzmiz" : "avans berilgan") : (v > 0 ? "mijoz qarzi" : "avans olingan"); }
+function ptBalFmt(m, app) {
+  const parts = Object.entries(m).filter(([, v]) => Math.abs(v) > 0.005);
+  if (!parts.length) return `<span class="bal0">0</span>`;
+  return parts.map(([cur, v]) => `<span class="${v > 0 ? "balpos" : "balneg"}">${krMoney(Math.abs(v), cur)}</span><div class="tmeta">${ptSignTxt(app, v)}</div>`).join("");
+}
+function ptBitoFmt(o) {
+  const b = (KR.bitoBal || {})[o.name.trim().toLowerCase()];
+  if (!b || Math.abs(b.bal) < 0.005) return `<span class="bal0">—</span>`;
+  return `<span class="${b.bal > 0 ? "balpos" : "balneg"}">${krMoney(Math.abs(b.bal), b.cur)}</span><div class="tmeta">${ptSignTxt("supApp", b.bal)}</div>`;
+}
+function ptTotals(app, list) {
+  const pos = {}, neg = {};
+  list.forEach(o => Object.entries(ptBal(app, o)).forEach(([cur, v]) => { if (v > 0) pos[cur] = (pos[cur] || 0) + v; else if (v < 0) neg[cur] = (neg[cur] || 0) - v; }));
+  const f = m => Object.entries(m).map(([cur, v]) => krMoney(v, cur)).join(" + ");
+  const out = [];
+  if (Object.keys(pos).length) out.push((app === "supApp" ? "Jami qarzimiz: " : "Mijozlar qarzi: ") + f(pos));
+  if (Object.keys(neg).length) out.push((app === "supApp" ? "Berilgan avans: " : "Olingan avans: ") + f(neg));
+  return out.join(" · ");
+}
+// Kirim formasidagi yetkazib beruvchilar: avval Tsunami ro'yxati, keyin Bito'dan kelganlari
+function krMergeSuppliers() {
+  const own = PARTY.supApp ? PARTY.supApp.list.map(s => s.name) : [];
+  const low = new Set(own.map(n => n.toLowerCase()));
+  KR.suppliers = own.concat((KR.bitoSuppliers || []).filter(n => !low.has(n.toLowerCase())));
+  $("krSuppliers").innerHTML = KR.suppliers.map(n => `<option value="${esc(n)}">`).join("");
+}
+Object.keys(PARTY_CFG).forEach(ptBuild);
+function ptRoute(secId, subName) {
+  Object.values(PARTY).forEach(P => {
+    const on = secId === P.c.sec && subName === P.c.sub;
+    $(P.app).classList.remove("fopen");
+    document.body.classList.toggle(`${P.app}-on`, on);
+    if (on) P.render();
+  });
+}
+(async () => {
+  let mcp = null;
+  try { mcp = window.claude && window.claude.use ? await window.claude.use("mcp") : null; } catch (e) { mcp = null; }
+  Object.values(PARTY).forEach(P => {
+    if (!mcp) { P.state = "off"; P.render(); return; }
+    P.mcp = mcp;
+    try {
+      mcp.watchTool(GS, "get_values", { spreadsheetId:BASE_ID, range:P.range }, ev => {
+        if (ev.type === "data") { if (!P.busy) P.apply(krVals(ev)); return; }
+        const c = ev.error && ev.error.code;
+        if (P.state !== "ok" || !P.list.length) P.state = c || "upstream_error";
+        P.render();
+      }, { refetchInterval:120000 });
+    } catch (e) {}
+  });
+})();
+
+const NAV_ICONS = {"hisobotlar": "<path d=\"M4 20V11M10 20V5M16 20v-6M2 20h20\"/>", "sotuv": "<path d=\"M3 4h2l2.4 11h11.2L21 8H6.2\"/><circle cx=\"9\" cy=\"19\" r=\"1.5\"/><circle cx=\"18\" cy=\"19\" r=\"1.5\"/>", "marketing": "<path d=\"M3 10v4l11 5V5L3 10z\"/><path d=\"M14 8h2a4 4 0 010 8h-2\"/><path d=\"M6 15l1 5h3l-1-4\"/>", "crm": "<circle cx=\"9\" cy=\"8\" r=\"3\"/><path d=\"M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6\"/><circle cx=\"17\" cy=\"9\" r=\"2.5\"/><path d=\"M16.5 14c2.7.2 4.5 2.3 4.5 5\"/>", "vazifalar": "<rect x=\"4\" y=\"3\" width=\"16\" height=\"18\" rx=\"2\"/><path d=\"M8 9l2 2 4-4M8 15h8\"/>", "tarqatish": "<path d=\"M12 21s-6-5.5-6-10a6 6 0 0112 0c0 4.5-6 10-6 10z\"/><circle cx=\"12\" cy=\"11\" r=\"2\"/>", "logistika": "<path d=\"M2 6h11v10H2zM13 10h4l4 4v2h-8z\"/><circle cx=\"6\" cy=\"18\" r=\"2\"/><circle cx=\"17\" cy=\"18\" r=\"2\"/>", "taminot": "<path d=\"M3 7l9-4 9 4v10l-9 4-9-4V7z\"/><path d=\"M3 7l9 4 9-4M12 11v10\"/>", "ombor": "<path d=\"M3 21V9l9-5 9 5v12\"/><path d=\"M7 21v-8h10v8M7 17h10\"/>", "moliya": "<circle cx=\"12\" cy=\"12\" r=\"9\"/><path d=\"M15 9.5c-.5-1-1.6-1.5-3-1.5-1.7 0-3 .9-3 2s1.3 1.7 3 2 3 .9 3 2-1.3 2-3 2c-1.4 0-2.5-.5-3-1.5M12 6v12\"/>", "kadrlar": "<rect x=\"4\" y=\"3\" width=\"16\" height=\"18\" rx=\"2\"/><circle cx=\"12\" cy=\"10\" r=\"2.5\"/><path d=\"M8 17c.6-1.8 2.2-3 4-3s3.4 1.2 4 3\"/>", "ishchilar": "<circle cx=\"12\" cy=\"8\" r=\"4\"/><path d=\"M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8\"/>", "integratsiya": "<path d=\"M10 14a4 4 0 005.7 0l3-3a4 4 0 00-5.7-5.7l-1 1\"/><path d=\"M14 10a4 4 0 00-5.7 0l-3 3a4 4 0 005.7 5.7l1-1\"/>", "ishlab-chiqarish": "<path d=\"M3 21V11l5 3v-3l5 3V7l8 4v10z\"/><path d=\"M7 18h2M12 18h2M17 18h2\"/>", "malumotnoma": "<path d=\"M4 19V5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM4 19a2 2 0 002 2h13\"/><path d=\"M8 7h7\"/>", "vositalar": "<path d=\"M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z\"/>", "sozlamalar": "<circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 2v3M12 19v3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1L7 17M17 7l2.1-2.1\"/>"};
+const navSvg = d => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+SECTIONS.forEach(s => {
+  const a = document.createElement("a");
+  a.href = "#" + s.id; a.dataset.id = s.id; a.title = s.name;
+  a.innerHTML = navSvg(NAV_ICONS[s.id] || '<circle cx="12" cy="12" r="8"/>') + `<span>${esc(s.name)}</span>`;
+  menu.appendChild(a);
+});
+function setNavMin(on) { document.body.classList.toggle("navmin", on); try { localStorage.setItem("tsunami_navmin", on ? "1" : ""); } catch (e) {} }
+try { if (localStorage.getItem("tsunami_navmin")) document.body.classList.add("navmin"); } catch (e) {}
+$("navToggle").addEventListener("click", () => setNavMin(!document.body.classList.contains("navmin")));
+window.addEventListener("hashchange", () => render(location.hash.slice(1)));
+render(location.hash.slice(1) || SECTIONS[0].id);
+</script>
+<script src="qaytarish.js"></script>
+<script src="tolov.js"></script>
+<script src="chegirma.js"></script>
+<script src="marketing.js"></script>
+<script src="crm.js"></script>
+<script src="tarqatish.js"></script>
+<script src="logistika.js"></script>
+<script src="taminot.js"></script>
+<script src="ombor.js"></script>
+<script src="moliya.js"></script>
+<script src="kadrlar.js"></script><script src="integratsiya.js"></script><script src="narx.js"></script><script src="vositalar.js"></script><script src="hisobot.js"></script>
+</body>
+</html>
