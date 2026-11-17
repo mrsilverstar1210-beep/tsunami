@@ -101,8 +101,8 @@
     p.onclick = function (e) { var x = e.target.closest("[data-g]"); if (x) { e.preventDefault(); goSec(x.getAttribute("data-g")); } };
   }
   function avPop(b) {
-    var p = pop(b, '<div class="hd">' + E(ME.shop) + '</div><div class="nt"><span>' + E(ME.name || "—") + "</span><b>" + E(ME.role || "") + '</b></div><button class="it" data-x="app">' + svg(I.phone) + 'Tsunami ilovasi</button><button class="it" data-x="mode">' + svg(I.moon) + 'Yorug\' / tun</button><button class="it" data-x="out">' + svg(I.out) + "Chiqish</button>", true);
-    p.onclick = function (e) { var x = e.target.closest("[data-x]"); if (!x) return; var k = x.getAttribute("data-x"); closePop(); if (k === "app") location.href = "../"; else if (k === "mode") flip(e); else if (window.TSU) TSU.logout(); };
+    var p = pop(b, '<div class="hd">' + E(ME.shop) + '</div><div class="nt"><span>' + E(ME.name || "—") + "</span><b>" + E(ME.role || "") + '</b></div><button class="it" data-x="app">' + svg(I.phone) + 'Tsunami ilovasi</button><button class="it" data-x="mode">' + svg(I.moon) + 'Yorug\' / tun</button><div class="hd">Til</div><button class="it notr" data-x="uz">' + (window.TSU_LANG !== "ru" ? "✓ " : "") + 'O\'zbekcha</button><button class="it notr" data-x="ru">' + (window.TSU_LANG === "ru" ? "✓ " : "") + 'Русский</button><button class="it" data-x="out">' + svg(I.out) + "Chiqish</button>", true);
+    p.onclick = function (e) { var x = e.target.closest("[data-x]"); if (!x) return; var k = x.getAttribute("data-x"); closePop(); if (k === "uz" || k === "ru") { if (k !== (window.TSU_LANG || "uz") && window.tsuSetLang) tsuSetLang(k); return; } if (k === "app") location.href = "../"; else if (k === "mode") flip(e); else if (window.TSU) TSU.logout(); };
   }
   function bellPop(b) {
     var p = pop(b, '<div class="hd">Bildirishnomalar</div><div class="nt"><span>Yuklanmoqda…</span></div>', true);
@@ -155,7 +155,7 @@
   // ---------- sarlavha harflari bilan paydo bo'ladi ----------
   var tBusy = false;
   function animTitle() {
-    var t = $("title"); if (!t || tBusy || !on()) return; var s = t.textContent; if (!s || t.querySelector("span")) return;
+    var t = $("title"); if (!t || tBusy || !on()) return; var s = window.tsuT ? tsuT(t.textContent) : t.textContent; if (!s || t.querySelector("span")) return;
     tBusy = true; t.classList.add("kb-t"); t.innerHTML = s.split("").map(function (c, i) { return '<span style="animation-delay:' + (i * 0.022).toFixed(3) + 's">' + (c === " " ? "&nbsp;" : E(c)) + "</span>"; }).join(""); tBusy = false;
   }
 
@@ -189,7 +189,7 @@
     d.innerHTML = '<h2 id="kbT" style="font-size:38px;font-weight:600;letter-spacing:-.035em;margin:14px 0 2px">Bosh sahifa</h2><div id="kbSub" style="color:var(--kb-mut);font-size:14px;margin-bottom:16px">' + E(ME.shop) + " — asosiy ko'rsatkichlar</div>"
       + '<div class="kbd-bar"><div class="kbd-seg" id="kbP">' + Object.keys(PL).map(function (k) { return '<button data-p="' + k + '" class="' + (k === P ? "on" : "") + '">' + PL[k] + "</button>"; }).join("") + '</div><div class="kbd-when">' + svg(I.clock) + E(when) + '</div><a class="kb-btn" data-go="hisobotlar">' + svg(I.chart) + 'To\'liq hisobot</a><button class="kb-btn dk" id="kbExp">' + svg(I.down) + "Eksport</button></div>"
       + '<div class="kbd-kpis">' + [0, 1, 2, 3].map(function () { return '<div class="kbd-sk" style="height:150px"></div>'; }).join("") + '</div><div class="kbd-row"><div class="kbd-sk" style="height:300px"></div><div class="kbd-sk" style="height:300px"></div></div>';
-    var t = $("kbT"); t.innerHTML = t.textContent.split("").map(function (c, i) { return '<span style="display:inline-block;animation:kbCh .55s cubic-bezier(.22,.8,.24,1) both ' + (i * 0.025).toFixed(3) + 's">' + (c === " " ? "&nbsp;" : c) + "</span>"; }).join("");
+    var t = $("kbT"); t.innerHTML = (window.tsuT ? tsuT(t.textContent) : t.textContent).split("").map(function (c, i) { return '<span style="display:inline-block;animation:kbCh .55s cubic-bezier(.22,.8,.24,1) both ' + (i * 0.025).toFixed(3) + 's">' + (c === " " ? "&nbsp;" : c) + "</span>"; }).join("");
     $("kbP").onclick = function (e) { var b = e.target.closest("[data-p]"); if (!b || b.getAttribute("data-p") === P) return; P = b.getAttribute("data-p"); drawDash(); };
     d.onclick = function (e) { var x = e.target.closest("[data-go]"); if (!x) return; e.preventDefault(); var g = x.getAttribute("data-go").split("|"); if (g[0] === "@app") location.href = "../"; else goSec(g[0], g[1]); };
     var ask = P;

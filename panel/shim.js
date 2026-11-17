@@ -1,6 +1,8 @@
 // Tsunami paneli: claude.ai ulanishi o'rniga Tsunami serveri (API) bilan ishlaydi. Server ko'chirilsa, faqat TSUNAMI_API o'zgaradi.
 (function () {
   // temalar ro'yxati ilova bilan umumiy fayldan olinadi (../themes.js)
+  // til: o'zbekcha / ruscha (lug'at bilan ko'rinadigan matnlar o'giriladi)
+  document.write('<script src="' + (window.TSUNAMI_ROOT || "../") + 'lang-ru.js"><\/script><script src="' + (window.TSUNAMI_ROOT || "../") + 'lang.js"><\/script>');
   if (!window.TSU_THEMES) document.write('<script src="' + (window.TSUNAMI_THEMES || "../themes.js") + '"><\/script>');
   var API = window.TSUNAMI_API || "https://script.google.com/macros/s/AKfycbzifst9f9g72g4Qp5D2N4CbW6unsSL1LtX33O1mdDbdEFmkpfLsuofVz20YoqKlInTCQg/exec";
   var ls = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
@@ -22,7 +24,7 @@
   // ---- tezlik: (1) bir vaqtda kelgan o'qishlar bitta so'rovga yig'iladi; (2) o'qilgan jadval 45 soniya xotirada turadi; (3) doimiy kuzatiladigan jadvallar oxirgi holati bilan darhol ko'rsatiladi
   // ---- Bito jadvali faqat «Integratsiya» bo'limida, foydalanuvchi o'zi so'raganda o'qiladi
   var BITO = "1fgsNMTOyX4_kyxFXcMT4YUSFH6SfZmh4HRS7u-ej-tE", TTL = 45000, cache = {}, queue = [], qt = null, EMPTY = { payload: { values: [] } };
-  function inInteg() { var a = document.querySelector("nav a.active"); return !!a && /integratsiya/i.test(a.textContent); }
+  function inInteg() { var a = document.querySelector("nav a.active"); return !!a && a.getAttribute("data-id") === "integratsiya"; }
   function sheetOf(r) { return String(r).split("!")[0].replace(/^'|'$/g, ""); }
   function flush() {
     var q = queue; queue = []; qt = null; if (!q.length) return;
@@ -98,6 +100,10 @@
     document.title = "Tsunami — boshqaruv paneli";
     var nav = document.querySelector("nav");
     if (nav) { var a = document.createElement("a"); a.id = "tsuBack"; a.href = "../"; a.textContent = "← Tsunami ilovasiga qaytish"; nav.insertBefore(a, nav.firstChild); }
+    if (nav) { var lg = document.createElement("div"); lg.className = "notr"; lg.id = "tsuLang"; var cur = window.TSU_LANG === "ru" ? "ru" : "uz";
+      lg.innerHTML = '<a href="#" data-l="uz"' + (cur === "uz" ? ' class="on"' : "") + '>O\'zbekcha</a><a href="#" data-l="ru"' + (cur === "ru" ? ' class="on"' : "") + '>Русский</a>';
+      lg.onclick = function (e) { var x = e.target.closest("[data-l]"); if (!x) return; e.preventDefault(); if (x.getAttribute("data-l") !== cur && window.tsuSetLang) tsuSetLang(x.getAttribute("data-l")); };
+      nav.insertBefore(lg, a.nextSibling); }
     // «Corbel» (1-video) dizayni: sarlavha, suzuvchi asboblar paneli, bosh sahifa
     var l = document.createElement("link"); l.rel = "stylesheet"; l.href = "korbel.css?v=1"; document.head.appendChild(l);
     var s = document.createElement("script"); s.src = "korbel.js?v=1"; document.body.appendChild(s);
