@@ -1,5 +1,7 @@
 // Tsunami paneli: claude.ai ulanishi o'rniga Tsunami serveri (API) bilan ishlaydi. Server ko'chirilsa, faqat TSUNAMI_API o'zgaradi.
 (function () {
+  // temalar ro'yxati ilova bilan umumiy fayldan olinadi (../themes.js)
+  if (!window.TSU_THEMES) document.write('<script src="' + (window.TSUNAMI_THEMES || "../themes.js") + '"><\/script>');
   var API = window.TSUNAMI_API || "https://script.google.com/macros/s/AKfycbzifst9f9g72g4Qp5D2N4CbW6unsSL1LtX33O1mdDbdEFmkpfLsuofVz20YoqKlInTCQg/exec";
   var ls = function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } };
   var tok = ls("tsu_tok"), ten = ls("tsu_ten");
@@ -17,17 +19,37 @@
         throw err(/ruxsat/i.test(m) ? "blocked_by_policy" : "tool_error", m);
       });
   }
-  // bir vaqtda kelgan bir xil o'qish so'rovlari bitta so'rovga birlashtiriladi
-  var inflight = {};
+  // ---- tezlik: (1) bir vaqtda kelgan o'qishlar bitta so'rovga yig'iladi; (2) o'qilgan jadval 45 soniya xotirada turadi; (3) doimiy kuzatiladigan jadvallar oxirgi holati bilan darhol ko'rsatiladi
+  // ---- Bito jadvali faqat «Integratsiya» bo'limida, foydalanuvchi o'zi so'raganda o'qiladi
+  var BITO = "1fgsNMTOyX4_kyxFXcMT4YUSFH6SfZmh4HRS7u-ej-tE", TTL = 45000, cache = {}, queue = [], qt = null, EMPTY = { payload: { values: [] } };
+  function inInteg() { var a = document.querySelector("nav a.active"); return !!a && /integratsiya/i.test(a.textContent); }
+  function sheetOf(r) { return String(r).split("!")[0].replace(/^'|'$/g, ""); }
+  function flush() {
+    var q = queue; queue = []; qt = null; if (!q.length) return;
+    if (q.length === 1) return api({ fn: "sheet", what: "get_values", arg: q[0].a }).then(q[0].ok, q[0].no);
+    api({ fn: "sheet", what: "batch_get", arg: { ranges: q.map(function (x) { return x.a; }) } }).then(function (r) {
+      var L = (r.payload && r.payload.list) || []; q.forEach(function (x, i) { var o = L[i] || {}; if (o.error) x.no(err("tool_error", o.error)); else x.ok({ payload: { range: x.a.range, values: o.values || [] } }); });
+    }, function (e) { q.forEach(function (x) { x.no(e); }); });
+  }
+  function read(a, fresh) {
+    if (a.spreadsheetId === BITO && !inInteg()) return Promise.resolve(EMPTY);
+    var k = (a.spreadsheetId === BITO ? "B|" : "") + a.range, c = cache[k];
+    if (!fresh && c && Date.now() - c.t < TTL) return c.p;
+    var p = new Promise(function (ok, no) { queue.push({ a: { spreadsheetId: a.spreadsheetId, range: a.range }, ok: ok, no: no }); if (!qt) qt = setTimeout(flush, 25); });
+    cache[k] = { t: Date.now(), p: p }; p.then(null, function () { if (cache[k] && cache[k].p === p) delete cache[k]; });
+    return p;
+  }
   function callTool(server, tool, args) {
-    var a = { spreadsheetId: args.spreadsheetId, range: args.range, values: args.values };
-    if (tool !== "get_values") { inflight = {}; return api({ fn: "sheet", what: tool, arg: a }); }
-    var k = a.spreadsheetId + "|" + a.range; if (inflight[k]) return inflight[k];
-    var p = api({ fn: "sheet", what: tool, arg: a }); inflight[k] = p; var clr = function () { if (inflight[k] === p) delete inflight[k]; }; p.then(clr, clr); return p;
+    if (tool === "get_values") return read(args);
+    var sn = sheetOf(args.range); Object.keys(cache).forEach(function (k) { if (sheetOf(k.replace(/^B\|/, "")) === sn) delete cache[k]; });
+    return api({ fn: "sheet", what: tool, arg: { spreadsheetId: args.spreadsheetId, range: args.range, values: args.values } });
   }
   function watchTool(server, tool, args, handler, opts) {
-    var stop = false, run = function () { callTool(server, tool, args).then(function (r) { if (!stop) handler({ type: "data", result: r }); }, function (e) { if (!stop) handler({ type: "error", error: e, code: e && e.code }); }); };
-    run(); var t = setInterval(run, Math.max(120000, (opts && opts.refetchInterval) || 300000));
+    var stop = false, lk = "tsu_w|" + (ten || "") + "|" + args.range, bito = args.spreadsheetId === BITO, last = null;
+    var give = function (r, save) { if (stop) return; var j = JSON.stringify(r.payload.values || []); if (j === last) return; last = j; handler({ type: "data", result: r }); if (save && !bito) { try { if (j.length < 900000) localStorage.setItem(lk, j); } catch (e) {} } };
+    if (!bito) { try { var old = localStorage.getItem(lk); if (old) { last = old; handler({ type: "data", result: { payload: { values: JSON.parse(old) } } }); } } catch (e) {} }
+    var run = function (fresh) { if (bito && !inInteg()) { if (last === null) give(EMPTY); return; } read(args, fresh).then(function (r) { give(r, true); }, function (e) { if (!stop && last === null) handler({ type: "error", error: e, code: e && e.code }); }); };
+    run(false); var t = setInterval(function () { if (!document.hidden) run(true); }, Math.max(120000, (opts && opts.refetchInterval) || 300000));
     return function () { stop = true; clearInterval(t); };
   }
   // Vazifalar: «Vazifalar» varag'ida saqlanadi (ID, JSON, o'chirilgan)
@@ -62,15 +84,22 @@
   function fixInline(root) { var el = root.querySelectorAll ? root.querySelectorAll('[style*="#"]') : []; for (var i = 0; i < el.length; i++) { var a = el[i].getAttribute("style"), r = remap(a); if (r !== a) el[i].setAttribute("style", r); } }
   new MutationObserver(function (ms) { var st = false; for (var i = 0; i < ms.length; i++) for (var j = 0; j < ms[i].addedNodes.length; j++) { var n = ms[i].addedNodes[j]; if (n.nodeType !== 1) continue; if (n.tagName === "STYLE") st = true; else { if (n.getAttribute && (n.getAttribute("style") || "").indexOf("#") >= 0) { var a = n.getAttribute("style"), r = remap(a); if (r !== a) n.setAttribute("style", r); } fixInline(n); } } if (st) fixStyles(); }).observe(document.documentElement, { childList: true, subtree: true });
   document.addEventListener("DOMContentLoaded", function () { fixStyles(); fixInline(document); });
-  // ko'rinish: 6 ta rang varianti (tanlov brauzerda saqlanadi)
-  var TH = [["botqoq", "#7fb56a"], ["oltin", "#d6a84e"], ["yashil", "#2f7d4f"], ["grafit", "#5b9dff"], ["oq", "#e4e4e8"], ["okean", "#2fc4b2"]];
-  function setTh(t) { document.documentElement.setAttribute("data-th", t); try { localStorage.setItem("tsu_pth", t); } catch (e) {} var b = document.querySelectorAll("#tsuTh button"); for (var i = 0; i < b.length; i++) b[i].className = b[i].getAttribute("data-t") === t ? "on" : ""; }
-  setTh(ls("tsu_pth") || window.__TSU_TH || "botqoq");
+  // ko'rinish: do'kon tanlagan tema (Sozlamalar → Dizayn). Avval oxirgi eslab qolingani, keyin serverdagisi qo'llanadi.
+  // Bir dizaynning yorug' va tun variantlari: foydalanuvchi o'zi almashtiradi (o'z brauzerida), do'kon temasi o'zgarmaydi
+  var PAIR = { "mono": "mono-tun", "mono-tun": "mono" }, shopTh = ls("tsu_shopth") || ls("tsu_theme") || "botqoq";
+  function pick(t) { var m = ls("tsu_mode"); if (PAIR[t] && m) { var dark = t === "mono-tun"; if ((m === "dark") !== dark) return PAIR[t]; } return t; }
+  function setTh(t) { if (!window.tsuTheme) return; var id = window.tsuTheme(pick(t), document.documentElement).id; try { localStorage.setItem("tsu_theme", id); } catch (e) {} document.dispatchEvent(new CustomEvent("tsu:theme", { detail: id })); }
+  me.then(function (p) { if (!p) return; shopTh = p.theme || "botqoq"; try { localStorage.setItem("tsu_shopth", shopTh); } catch (e) {} if (pick(shopTh) !== document.documentElement.getAttribute("data-th")) setTh(shopTh); });
+  window.TSU = { api: api, me: me, setTh: setTh, pair: PAIR,
+    toggleMode: function () { var cur = document.documentElement.getAttribute("data-th"); if (!PAIR[cur]) return; var nx = PAIR[cur]; try { localStorage.setItem("tsu_mode", nx === "mono-tun" ? "dark" : "light"); } catch (e) {} setTh(shopTh); },
+    logout: function () { api({ fn: "logout" }).then(null, function () {}); ["tsu_tok", "tsu_ten", "tsu_d"].forEach(function (k) { try { localStorage.removeItem(k); } catch (e) {} }); location.replace("../"); } };
   document.addEventListener("DOMContentLoaded", function () {
+    setTh(shopTh);
     document.title = "Tsunami — boshqaruv paneli";
-    var nav = document.querySelector("nav"); if (!nav) return;
-    var a = document.createElement("a"); a.id = "tsuBack"; a.href = "../"; a.textContent = "← Tsunami ilovasiga qaytish"; nav.insertBefore(a, nav.firstChild);
-    var d = document.createElement("div"); d.id = "tsuTh"; d.innerHTML = TH.map(function (x) { return '<button data-t="' + x[0] + '" title="' + x[0] + '" style="background:' + x[1] + '"></button>'; }).join(""); nav.appendChild(d);
-    d.onclick = function (e) { var t = e.target.getAttribute("data-t"); if (t) setTh(t); }; setTh(document.documentElement.getAttribute("data-th"));
+    var nav = document.querySelector("nav");
+    if (nav) { var a = document.createElement("a"); a.id = "tsuBack"; a.href = "../"; a.textContent = "← Tsunami ilovasiga qaytish"; nav.insertBefore(a, nav.firstChild); }
+    // «Corbel» (1-video) dizayni: sarlavha, suzuvchi asboblar paneli, bosh sahifa
+    var l = document.createElement("link"); l.rel = "stylesheet"; l.href = "korbel.css?v=1"; document.head.appendChild(l);
+    var s = document.createElement("script"); s.src = "korbel.js?v=1"; document.body.appendChild(s);
   });
 })();
