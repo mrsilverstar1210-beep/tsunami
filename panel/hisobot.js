@@ -159,6 +159,7 @@ function hbMoveEvents() {
   OMV.list.filter(m => !m.cancelled).forEach(m => m.items.forEach(it => {
     if (m.type === "spis") push(m.date, it.name, "spis", -((it.imeis || []).length || Number(it.qty) || 0));
     else if (m.type === "inv") push(m.date, it.name, "inv", (it.extra || []).length - (it.missing || []).length + (Number(it.diff) || 0));
+    else if (m.type === "prod") push(m.date, it.name, "prod", (it.role === "out" ? 1 : -1) * ((it.imeis || []).length || Number(it.qty) || 0));
   }));
   return ev;
 }
@@ -167,16 +168,16 @@ function hbMove() {
   L.units.filter(u => u.st === "in").forEach(u => { now[hbK(u.name)] = (now[hbK(u.name)] || 0) + 1; });
   L.lots.filter(l => l.wh !== (typeof OM_BRAK !== "undefined" ? OM_BRAK : "Brak")).forEach(l => { now[hbK(l.name)] = (now[hbK(l.name)] || 0) + l.qty; });
   const m = {}, names = {};
-  const row = n => { const k = hbK(n); names[k] = names[k] || n; return m[k] || (m[k] = { kirim:0, sotuv:0, qaytdi:0, yq:0, spis:0, inv:0, after:0 }); };
+  const row = n => { const k = hbK(n); names[k] = names[k] || n; return m[k] || (m[k] = { kirim:0, sotuv:0, qaytdi:0, yq:0, spis:0, inv:0, prod:0, after:0 }); };
   hbMoveEvents().forEach(e => { const o = row(e.name); if (e.date > HBX.to) o.after += e.q; else if (e.date >= HBX.from) o[e.col] += e.q; });
   Object.keys(now).forEach(k => { if (!m[k]) { row(L.units.concat(L.lots).find(x => hbK(x.name) === k).name); } });
-  const rows = Object.entries(m).map(([k, o]) => { const net = o.kirim + o.sotuv + o.qaytdi + o.yq + o.spis + o.inv, end = (now[k] || 0) - o.after; return { n:names[k], o, beg:end - net, end, act:net !== 0 || o.kirim || o.sotuv }; })
+  const rows = Object.entries(m).map(([k, o]) => { const net = o.kirim + o.sotuv + o.qaytdi + o.yq + o.spis + o.inv + o.prod, end = (now[k] || 0) - o.after; return { n:names[k], o, beg:end - net, end, act:net !== 0 || o.kirim || o.sotuv }; })
     .filter(r => (!q || hbK(r.n).indexOf(q) >= 0) && (r.act || r.beg || r.end)).sort((a, b) => a.n.localeCompare(b.n));
-  const head = ["Tovar", "Boshida", "Kirim", "Sotuv", "Mijoz qaytardi", "Yetk. beruvchiga qaytdi", "Spisaniya", "Inventarizatsiya", "Oxirida"];
+  const head = ["Tovar", "Boshida", "Kirim", "Sotuv", "Mijoz qaytardi", "Yetk. beruvchiga qaytdi", "Spisaniya", "Inventarizatsiya", "Ishlab chiqarish", "Oxirida"];
   const f = v => v ? (v > 0 ? "+" + v : v) : "—";
-  HBX.last = { head, rows:rows.map(r => [r.n, r.beg, r.o.kirim, r.o.sotuv, r.o.qaytdi, r.o.yq, r.o.spis, r.o.inv, r.end]) };
-  const T = rows.reduce((a, r) => { a[0] += r.beg; a[1] += r.o.kirim; a[2] += r.o.sotuv; a[3] += r.o.qaytdi; a[4] += r.o.yq; a[5] += r.o.spis; a[6] += r.o.inv; a[7] += r.end; return a; }, [0, 0, 0, 0, 0, 0, 0, 0]);
-  return rows.length ? `<div class="tmeta" style="margin-bottom:8px">Dona hisobida. Brak omboridagi tovarlar «Oxirida» ustuniga kirmaydi.</div>` + hbTable(head, rows.map(r => [esc(r.n), r.beg, f(r.o.kirim), f(r.o.sotuv), f(r.o.qaytdi), f(r.o.yq), f(r.o.spis), f(r.o.inv), `<b>${r.end}</b>`]), ["Jami", T[0], f(T[1]), f(T[2]), f(T[3]), f(T[4]), f(T[5]), f(T[6]), T[7]]) : `<div class="empty-box">Harakat yo'q</div>`;
+  HBX.last = { head, rows:rows.map(r => [r.n, r.beg, r.o.kirim, r.o.sotuv, r.o.qaytdi, r.o.yq, r.o.spis, r.o.inv, r.o.prod, r.end]) };
+  const T = rows.reduce((a, r) => { a[0] += r.beg; a[1] += r.o.kirim; a[2] += r.o.sotuv; a[3] += r.o.qaytdi; a[4] += r.o.yq; a[5] += r.o.spis; a[6] += r.o.inv; a[7] += r.o.prod; a[8] += r.end; return a; }, [0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  return rows.length ? `<div class="tmeta" style="margin-bottom:8px">Dona hisobida. Brak omboridagi tovarlar «Oxirida» ustuniga kirmaydi.</div>` + hbTable(head, rows.map(r => [esc(r.n), r.beg, f(r.o.kirim), f(r.o.sotuv), f(r.o.qaytdi), f(r.o.yq), f(r.o.spis), f(r.o.inv), f(r.o.prod), `<b>${r.end}</b>`]), ["Jami", T[0], f(T[1]), f(T[2]), f(T[3]), f(T[4]), f(T[5]), f(T[6]), f(T[7]), T[8]]) : `<div class="empty-box">Harakat yo'q</div>`;
 }
 
 // ---------- 6. Ombor qiymati ----------

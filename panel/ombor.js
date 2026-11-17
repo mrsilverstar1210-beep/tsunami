@@ -27,7 +27,7 @@ const OM_BRAK = "Brak";
 // ======================= Ombor harakatlari (ma'lumot) =======================
 const OMV_RANGE = "'Ombor harakatlari'!A1:L5000";
 const OMV = { list:[], state:"loading", busy:false, msg:"", msgT:null };
-const OM_TYPES = { spis:"Spisaniya", ichki:"Ichki ko'chirish", tash:"Tashkiliy ko'chirish", inv:"Inventarizatsiya" };
+const OM_TYPES = { spis:"Spisaniya", ichki:"Ichki ko'chirish", tash:"Tashkiliy ko'chirish", inv:"Inventarizatsiya", prod:"Ishlab chiqarish" };
 function omvParse(vals) {
   const out = [];
   (Array.isArray(vals) ? vals : []).forEach((r, i) => {
@@ -100,6 +100,16 @@ function omLedger() {
         else if (m.type === "ichki" || m.type === "tash") {
           im.forEach(x => { if (units[x]) { units[x].org = m.torg; units[x].wh = m.twh; } });
           if (!im.length && it.qty) take(it.name, Number(it.qty), m.forg, m.fwh).forEach(p => lots.push(Object.assign(p, { org:m.torg, wh:m.twh, id:p.id + ">" + m.id })));
+        } else if (m.type === "prod") {
+          // Ishlab chiqarish: tarkibiy qismlar ombordan yechiladi, tayyor tovar shu omborga tannarxi bilan kiradi
+          if (it.role === "out") {
+            const q = Number(it.qty) || 0, c = Number(it.cost) || 0, cur = it.cur || "USD";
+            if (im.length) im.forEach(x => { units[x] = { imei:x, st:"in", name:it.name, cost:c, cur, org:m.torg || m.forg, wh:m.twh || m.fwh, kirim:0, kdate:String(m.date).slice(0, 10), sup:"(ishlab chiqarish)" }; });
+            else if (q > 0) lots.push({ name:it.name, qty:q, cost:c, cur, org:m.torg || m.forg, wh:m.twh || m.fwh, kirim:0, kdate:String(m.date).slice(0, 10), sup:"(ishlab chiqarish)", id:"p:" + m.id + ":" + it.name });
+          } else {
+            im.forEach(x => { if (units[x]) units[x].st = "out"; else neg[it.name] = (neg[it.name] || 0) + 1; });
+            if (!im.length && it.qty) take(it.name, Number(it.qty), m.forg, m.fwh);
+          }
         } else if (m.type === "inv") {
           (it.missing || []).forEach(x => { if (units[x]) { units[x].st = "out"; addC(mc.loss, units[x].cur, Number(units[x].cost) || 0); } });
           (it.extra || []).forEach(x => { units[x] = { imei:x, st:"in", name:it.name, cost:Number(it.cost) || lastCost(it.name)[0], cur:it.cur || lastCost(it.name)[1], org:m.forg, wh:m.fwh, kirim:0, kdate:String(m.date).slice(0, 10), sup:"(inventarizatsiya)" }; addC(mc.gain, units[x].cur, Number(units[x].cost) || 0); });

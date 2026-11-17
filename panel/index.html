@@ -630,7 +630,7 @@ const SHEET_ID = "1fgsNMTOyX4_kyxFXcMT4YUSFH6SfZmh4HRS7u-ej-tE";
 const GS = "Google Sheets";
 const RANGES = { checks:"'Savdo — cheklar'!A1:N2000", items:"'Savdo — tovarlar'!A1:J4000", plan:"'Sotuvchi reja'!A1:G50", holat:"Holat!A1:D2" };
 const SALES = { checks:null, items:null, plan:null, holat:null, err:"", off:false, storedAt:0, mcp:null };
-const LIVE_SUBS = ["Bito sotuvlari", "Sotuv rejasi", "Top tovarlar", "Qarzdor cheklar"];
+const LIVE_SUBS = ["Bito sotuvlari"];
 let salesPeriod = "today", salesDept = "all";
 const num = v => { const n = Number(String(v == null ? "" : v).replace(/\s/g, "").replace(",", ".")); return isFinite(n) ? n : 0; };
 const money = n => Math.round(n).toLocaleString("ru-RU") + " so'm";
@@ -1575,6 +1575,7 @@ async function slSave() {
   if (known) client = known.name;
   if (!client) client = SL_WALKIN;
   if (debt > 0.005 && !known) return slFmsg(client === SL_WALKIN ? "Qarzga sotish uchun mijozni tanlang." : `Qarzga sotish uchun «${client}» ni avval CRM → Mijozlar bo'limida yarating.`, true);
+  if (debt > 0.005 && typeof nzCreditCheck === "function") { const cm = nzCreditCheck(known, cur, rate, debt); if (cm) return slFmsg(cm, true); }
   SL.busy = true; $("slSave").disabled = true;
   let step = "read";
   try {
@@ -1965,6 +1966,8 @@ const PARTY_CFG = {
       { k:"birth", col:7, label:"Tug'ilgan sana", type:"date", natural:true },
       { k:"inn", col:6, label:"STIR (INN)", ph:"9 xonali", legal:true, maxlength:9 },
       { k:"opening", col:13, label:"Boshlang'ich balans, so'm (+ mijoz qarzi, − avans)", type:"num", ph:"0" },
+      { k:"limit", col:14, label:"Qarz limiti, so'm (bo'sh — cheklanmagan)", type:"num", ph:"masalan: 5000000" },
+      { k:"term", col:15, label:"Qarz muddati, kun (bo'sh — cheklanmagan)", type:"num", ph:"masalan: 30" },
       { k:"addr", col:5, label:"Manzil", ph:"ixtiyoriy", wide:true },
       { k:"note", col:9, label:"Izoh", ph:"ixtiyoriy", wide:true }
     ],
@@ -1993,7 +1996,7 @@ function ptBuild(app) {
     + `<form class="kform" id="${app}_form"><div class="kgrid">${c.fields.map(field).join("")}</div><div class="kbtns"><button type="button" class="pri" id="${app}_save">Saqlash</button></div><div class="status" id="${app}_fmsg"></div></form></div>`
     + `<div class="panel"><div class="thead"><h3>${esc(c.listTitle)}</h3><div class="hbtns"><input class="search" id="${app}_q" placeholder="Qidirish: nomi, telefon, STIR"><button type="button" class="openbtn" data-open="${app}">${esc(c.btn)}</button></div></div><div class="status" id="${app}_status"></div><div id="${app}_list"></div></div>`;
   $("kirimApp").parentNode.insertBefore(el, $("kirimApp"));
-  const P = PARTY[app] = { app, c, list:[], state:"loading", busy:false, editId:"", q:"", pendDel:"", msg:"", msgT:null, mcp:null, range:`'${c.sheet}'!A1:N5000` };
+  const P = PARTY[app] = { app, c, list:[], state:"loading", busy:false, editId:"", q:"", pendDel:"", msg:"", msgT:null, mcp:null, range:`'${c.sheet}'!A1:P5000` };
   const val = f => f.type === "seg" ? ((document.querySelector(`input[name="${app}_${f.k}"]:checked`) || {}).value || f.options[0]) : $(`${app}_${f.k}`).value.trim();
   const setVal = (f, v) => {
     if (f.type === "seg") { const r = document.querySelector(`input[name="${app}_${f.k}"][value="${CSS.escape(v || f.options[0])}"]`) || document.querySelector(`input[name="${app}_${f.k}"]`); r.checked = true; }
@@ -2034,6 +2037,8 @@ function ptBuild(app) {
     if (legal() && o.inn && !/^\d{9}$/.test(o.inn)) return fmsg("STIR 9 ta raqamdan iborat bo'lishi kerak.", true);
     if (!legal()) o.inn = ""; else if ("birth" in o) o.birth = "";
     if ("opening" in o && o.opening !== "" && !isFinite(Number(o.opening))) return fmsg("Boshlang'ich balansni raqam bilan kiriting.", true);
+    if ("limit" in o && o.limit !== "" && !(Number(o.limit) >= 0)) return fmsg("Qarz limitini musbat raqam bilan kiriting.", true);
+    if ("term" in o && o.term !== "" && !(Number(o.term) >= 1 && Math.floor(Number(o.term)) === Number(o.term))) return fmsg("Qarz muddatini butun kun bilan kiriting.", true);
     P.busy = true; $(`${app}_save`).disabled = true;
     let step = "read";
     try {
@@ -2047,12 +2052,14 @@ function ptBuild(app) {
       const ex = P.editId ? P.list.find(x => x.id === P.editId) : null;
       if (P.editId && !ex) { fmsg(`Bu ${c.one} boshqa joyda o'chirilgan.`, true); throw null; }
       const now = new Date().toISOString(), id = ex ? ex.id : c.prefix + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
-      const row = Array(14).fill("");
+      const row = Array(16).fill("");
       row[0] = krT(id); c.fields.forEach(f => { row[f.col] = krT(o[f.k]); });
       if ("opening" in o) row[13] = o.opening === "" ? "" : Number(o.opening);
+      if ("limit" in o) row[14] = o.limit === "" ? "" : Number(o.limit);
+      if ("term" in o) row[15] = o.term === "" ? "" : Number(o.term);
       row[10] = "Faol"; row[11] = krT(ex ? ex.createdAt : now); row[12] = krT(now);
       step = "write";
-      if (ex) await P.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`'${c.sheet}'!A${ex.row}:N${ex.row}`, values:[row] });
+      if (ex) await P.mcp.callTool(GS, "update_values", { spreadsheetId:BASE_ID, range:`'${c.sheet}'!A${ex.row}:P${ex.row}`, values:[row] });
       else await P.mcp.callTool(GS, "append_values", { spreadsheetId:BASE_ID, range:`'${c.sheet}'!A1`, values:[row] });
       say(ex ? `«${o.name}» saqlandi.` : `«${o.name}» qo'shildi.`);
       P.reset(); openForm(app, false);
@@ -2195,5 +2202,7 @@ render(location.hash.slice(1) || SECTIONS[0].id);
 <script src="ombor.js"></script>
 <script src="moliya.js"></script>
 <script src="kadrlar.js"></script><script src="integratsiya.js"></script><script src="narx.js"></script><script src="vositalar.js"></script><script src="hisobot.js"></script>
+<script src="nazorat.js"></script>
+<script src="ishlab.js"></script>
 </body>
 </html>
